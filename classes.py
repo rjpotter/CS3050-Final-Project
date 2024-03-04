@@ -2,7 +2,7 @@ from enum import Enum
 from dataclasses import dataclass
 
 
-class Unit(Enum):
+class Cell(Enum):
     # normal troops
     spy = 1
     scout = 2
@@ -14,33 +14,43 @@ class Unit(Enum):
     colonel = 8
     marshal = 10
     # edge cases (subject to change)
-    flag = 0
+    empty = 0
     bomb = 11
-    water = -1
+    flag = -1
 
 
 class Game:
     def __init__(self):
         self.human_player = Human_Player()
         self.computer_player = Computer_Player()
-        self.board: list[list[Unit]] = [[]]
+        self.board: list[list[Cell]] = [[]]
 
 
 class Human_Player:
     def __init__(self):
-        self.troop_locations: list[tuple]
+        self.troop_locations: list[tuple[int, int]] = []
+        self.initialize_locations()
 
     def initialize_locations(self):
-        # will eventually initialize troop locations here
-        pass
+        # human starts with troops in the bottom 4 rows of the board
+        for row in range(6, 10):
+            for col in range(10):
+                self.troop_locations.append((row, col))
 
 
 class Computer_Player:
     def __init__(self):
-        self.troop_locations = [()]
+        self.troop_locations: list[tuple[int, int]] = []
+        self.initialize_locations()
+
+    def initialize_locations(self):
+        # computer starts with troops in the top 4 rows of the board
+        for row in range(0, 5):
+            for col in range(10):
+                self.troop_locations.append((row, col))
 
 
-def compare_units(unit1: Unit, unit2: Unit) -> list[Unit]:
+def compare_units(unit1: Cell, unit2: Cell) -> list[Cell]:
     """
     compare units takes in 2 units and returns a list of units that "survive"
     Example: if unit1 is a scout, unit2 is a major, then the return is [unit2]
