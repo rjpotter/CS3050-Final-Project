@@ -17,8 +17,6 @@ class Unit(Enum):
     flag = 0
     bomb = 11
     water = -1
-    equal_flag = -2
-
 
 
 class Game:
