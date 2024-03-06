@@ -20,6 +20,7 @@ class Cell(Enum):
     captain = 6
     major = 7
     colonel = 8
+    general = 9
     marshal = 10
     # edge cases (subject to change)
     empty = 0
@@ -36,12 +37,22 @@ class Game:
 
     def intialize_board(self):
         # append computer player rows
-        self.board.append([Cell.flag, Cell.bomb, Cell.marshal, Cell.bomb])
-        self.board.append([Cell.flag, Cell.bomb, Cell.marshal])
-
+        self.board.append([Cell.flag, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.marshal, Cell.general, Cell.colonel])
+        self.board.append([Cell.colonel, Cell.major, Cell.major, Cell.major, Cell.captain, Cell.captain, Cell.captain, Cell.captain, Cell.lieutenant, Cell.lieutenant])
+        self.board.append([Cell.lieutenant, Cell.lieutenant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.miner, Cell.miner, Cell.miner, Cell.miner])
+        self.board.append([Cell.miner, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.spy])
         # 2 empty rows
-
+        self.board.append([Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty])
+        self.board.append([Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty])
         # 4 player rows
+        self.board.append([Cell.miner, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.spy])
+        self.board.append([Cell.lieutenant, Cell.lieutenant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.miner, Cell.miner, Cell.miner, Cell.miner])
+        self.board.append([Cell.colonel, Cell.major, Cell.major, Cell.major, Cell.captain, Cell.captain, Cell.captain, Cell.captain, Cell.lieutenant, Cell.lieutenant])
+        self.board.append([Cell.flag, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.marshal, Cell.general, Cell.colonel])
+
+
+
+
 
 
 class Human_Player:
