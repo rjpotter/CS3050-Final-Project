@@ -14,11 +14,7 @@ SCREEN_TITLE = "Stratego"
 
 class MyGame(arcade.Window):
     """
-    Main application class.
-
-    NOTE: Go ahead and delete the methods you don't need.
-    If you do need a method, delete the 'pass' and replace it
-    with your own code. Don't leave 'pass' in this program.
+    Graphics application class
     """
 
     def __init__(self, width, height, title):
@@ -30,7 +26,9 @@ class MyGame(arcade.Window):
         # and set them to None
 
     def setup(self):
-        """ Set up the game variables. Call to re-start the game. """
+        """
+        Set up the game variables. Call to re-start the game.
+        """
         # Create sprites and sprite lists here
         pass
 
