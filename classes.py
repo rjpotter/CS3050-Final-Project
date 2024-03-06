@@ -46,7 +46,13 @@ class Game:
 
         pass
 
-    def is_moveable_cell(self, row, col):
+    def is_moveable_cell(self, row, col) -> bool:
+        """
+        is_moveable cell returns a bool depending on if there is a moveable unit at the location given by row,col
+        :param row: row of potentially moveable unit
+        :param col: col of potentially moveable unit
+        :return: True if unit is moveable, false otw
+        """
         if row not in range(1, 11):
             print('invalid row in is_moveable_cell')
             return False
