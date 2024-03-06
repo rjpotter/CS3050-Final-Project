@@ -25,33 +25,43 @@ The game Stratego. Stratego is a classic board game of battlefield strategy that
    - **Priority**: Essential
    - **Difficulty**: Easy
    - **Notes**: Each player will have a pre-set starting position.
+   - **Status**: Completed. The board is initialized with troops in their starting positions for both human and computer players.
 
 2. **Cell Type Enum**
    - **Priority**: Essential
    - **Difficulty**: Easy
    - **Notes**: Define enum types for different cell states or contents.
+   - **Status**: Completed. The `Cell` enum classifies all possible cell types, including troops, bombs, and the flag.
 
 3. **Computer that Can Move Pieces (basic)**
    - **Priority**: Important
    - **Difficulty**: Medium
    - **Notes**: Moves can be mostly random, scouts will not be able to do non-standard moves.
+   - **Status**: In Progress. Basic infrastructure for move generation is in place, though specific logic for moves, including scouts, is pending.
 
 4. **Learn PyArcade**
    - **Priority**: Important
    - **Difficulty**: Medium
    - **Notes**: Successful if we can get a window with a single graphic.
+   - **Status**: In Progress.
 
 5. **List of Edge Cases**
    - **Priority**: Nice to have
    - **Difficulty**: Medium
    - **Notes**: Get the list of all the comparisons for every situation (water, troop comparisons like Spy->Marshal, etc.).
+   - **Status**: In Progress. Basic comparisons and some edge cases have been implemented, with more complex scenarios to follow.
 
 6. **Game End Detection**
    - **Priority**: Nice to have
    - **Difficulty**: Easy
    - **Notes**: Just detecting if a troop captures the enemy flag.
+   - **Status**: Completed. Game can detect the capture of the flag.
 
 7. **Troop Type Comparison**
    - **Priority**: Nice to have
    - **Difficulty**: Easy
    - **Notes**: Basically deciding who wins based on a troop attacking another.
+   - **Status**: Completed for basic cases. Additional logic for more complex troop interactions is in development.
+
+## Date
+3/4/2024
