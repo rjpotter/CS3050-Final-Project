@@ -20,6 +20,7 @@ class Cell(Enum):
     captain = 6
     major = 7
     colonel = 8
+    general = 9
     marshal = 10
     # edge cases (subject to change)
     empty = 0
@@ -46,7 +47,13 @@ class Game:
 
         pass
 
-    def is_moveable_cell(self, row, col):
+    def is_moveable_cell(self, row, col) -> bool:
+        """
+        is_moveable cell returns a bool depending on if there is a moveable unit at the location given by row,col
+        :param row: row of potentially moveable unit
+        :param col: col of potentially moveable unit
+        :return: True if unit is moveable, false otw
+        """
         if row not in range(1, 11):
             print('invalid row in is_moveable_cell')
             return False
@@ -63,12 +70,22 @@ class Game:
 
     def intialize_board(self):
         # append computer player rows
-        self.board.append([Cell.flag, Cell.bomb, Cell.marshal, Cell.bomb])
-        self.board.append([Cell.flag, Cell.bomb, Cell.marshal])
-
+        self.board.append([Cell.flag, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.marshal, Cell.general, Cell.colonel])
+        self.board.append([Cell.colonel, Cell.major, Cell.major, Cell.major, Cell.captain, Cell.captain, Cell.captain, Cell.captain, Cell.lieutenant, Cell.lieutenant])
+        self.board.append([Cell.lieutenant, Cell.lieutenant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.miner, Cell.miner, Cell.miner, Cell.miner])
+        self.board.append([Cell.miner, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.spy])
         # 2 empty rows
-
+        self.board.append([Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty])
+        self.board.append([Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty])
         # 4 player rows
+        self.board.append([Cell.miner, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.spy])
+        self.board.append([Cell.lieutenant, Cell.lieutenant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.miner, Cell.miner, Cell.miner, Cell.miner])
+        self.board.append([Cell.colonel, Cell.major, Cell.major, Cell.major, Cell.captain, Cell.captain, Cell.captain, Cell.captain, Cell.lieutenant, Cell.lieutenant])
+        self.board.append([Cell.flag, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.marshal, Cell.general, Cell.colonel])
+
+
+
+
 
 
 class Human_Player:
