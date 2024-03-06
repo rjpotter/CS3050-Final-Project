@@ -1,3 +1,11 @@
+"""
+Jack Mahoney, Ryan Potter, Ethan Rowland, Cooper Zion
+Stratego: Classes
+CS 3050 - Software Engineering
+3/4/2024
+"""
+
+
 from enum import Enum
 from dataclasses import dataclass
 
