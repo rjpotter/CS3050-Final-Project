@@ -31,7 +31,17 @@ class Game:
     def __init__(self):
         self.human_player = Human_Player()
         self.computer_player = Computer_Player()
-        self.board: list[list[Cell]] = [[]]
+        self.board = []
+        self.intialize_board()
+
+    def intialize_board(self):
+        # append computer player rows
+        self.board.append([Cell.flag, Cell.bomb, Cell.marshal, Cell.bomb])
+        self.board.append([Cell.flag, Cell.bomb, Cell.marshal])
+
+        # 2 empty rows
+
+        # 4 player rows
 
 
 class Human_Player:
@@ -76,3 +86,7 @@ def compare_units(unit1: Cell, unit2: Cell) -> list[Cell]:
         return [unit2]
     else:
         return []
+
+def get_neighbors(row: int, col: int):
+    pass
+
