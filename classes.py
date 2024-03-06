@@ -41,6 +41,9 @@ class Game:
         :param col:
         :return:
         """
+        if not self.is_moveable_cell(row, col):
+            return []
+
         pass
 
     def is_moveable_cell(self, row, col):
