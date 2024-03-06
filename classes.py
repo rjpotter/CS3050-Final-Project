@@ -34,6 +34,30 @@ class Game:
         self.board = []
         self.intialize_board()
 
+    def get_valid_moves(self, row: int, col: int) -> list[tuple[int,int]]:
+        """
+        get_valid_moves takes in a row and a col and returns a list of valid moves for the troop in that location
+        :param row:
+        :param col:
+        :return:
+        """
+        pass
+
+    def is_moveable_cell(self, row, col):
+        if row not in range(1, 11):
+            print('invalid row in is_moveable_cell')
+            return False
+        elif col not in range(1,11):
+            print('invalid col in is_moveable_cell')
+            return False
+        # Know that we can safely index
+        # get value of Cell enum at argument location
+        # if value is a moveable piece value, return true, else return false
+        if self.board[row][col].value in range(1, 11):
+            return True
+        else:
+            return False
+
     def intialize_board(self):
         # append computer player rows
         self.board.append([Cell.flag, Cell.bomb, Cell.marshal, Cell.bomb])
