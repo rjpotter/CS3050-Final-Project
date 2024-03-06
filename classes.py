@@ -87,6 +87,27 @@ def compare_units(unit1: Cell, unit2: Cell) -> list[Cell]:
     else:
         return []
 
-def get_neighbors(row: int, col: int):
-    pass
+
+def get_neighbors(row: int, col: int) -> list[tuple[int,int]]:
+    """
+    get_neighbors returns a list of tuples specifying the list of valid neighbor location
+    :param row: row of input location
+    :param col: col of input location
+    :return: list of tuples representing locations of valid neighbor cells
+    """
+    neighbors = []
+    # if not on top row, get top neighbor
+    if row > 1:
+        neighbors.append((row - 1, col))
+    # if not on bottom row, get bottom neighbor
+    if row < 10:
+        neighbors.append((row + 1, col))
+    # if not on left col, get left neighbor
+    if col > 1:
+        neighbors.append((row, col - 1))
+    # if not on right col, get right neighbor
+    if col < 10:
+        neighbors.append((row, col + 1))
+    # return result
+    return neighbors
 
