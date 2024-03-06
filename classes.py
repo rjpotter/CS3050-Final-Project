@@ -35,6 +35,39 @@ class Game:
         self.board = []
         self.intialize_board()
 
+    def get_valid_moves(self, row: int, col: int) -> list[tuple[int,int]]:
+        """
+        get_valid_moves takes in a row and a col and returns a list of valid moves for the troop in that location
+        :param row:
+        :param col:
+        :return:
+        """
+        if not self.is_moveable_cell(row, col):
+            return []
+
+        pass
+
+    def is_moveable_cell(self, row, col) -> bool:
+        """
+        is_moveable cell returns a bool depending on if there is a moveable unit at the location given by row,col
+        :param row: row of potentially moveable unit
+        :param col: col of potentially moveable unit
+        :return: True if unit is moveable, false otw
+        """
+        if row not in range(1, 11):
+            print('invalid row in is_moveable_cell')
+            return False
+        elif col not in range(1,11):
+            print('invalid col in is_moveable_cell')
+            return False
+        # Know that we can safely index
+        # get value of Cell enum at argument location
+        # if value is a moveable piece value, return true, else return false
+        if self.board[row][col].value in range(1, 11):
+            return True
+        else:
+            return False
+
     def intialize_board(self):
         # append computer player rows
         self.board.append([Cell.flag, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.marshal, Cell.general, Cell.colonel])
@@ -85,11 +118,22 @@ def compare_units(unit1: Cell, unit2: Cell) -> list[Cell]:
     Example: if unit1 is a scout, unit2 is a major, then the return is [unit2]
              if both units are scouts, the return is []
     There are a lot of edge cases when dealing with this
+    Unit1 is the unit that is moving, unit2 is the unit that is being moved on to
     :param unit1: first unit to be compared
     :param unit2: second unit to be compared
     :return: list of units that "survive" encounter
     """
     # lots of edge cases will eventually go in here
+    # case where unit 1 is spy, unit 2 is marshal
+    if unit1 == Cell.spy and unit2 == Cell.marshal:
+        return [unit1]
+    # case where miner is going onto bomb
+    if unit1 == Cell.miner and unit2 == Cell.bomb:
+        return [unit1]
+    # case where flag is captured (game is won)
+    if unit2 == Cell.flag:
+        return [unit2]
+
     # VERY basic cases
     if unit1.value > unit2.value:
         return [unit1]
