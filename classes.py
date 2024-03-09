@@ -26,6 +26,7 @@ class Cell(Enum):
     empty = 0
     bomb = 11
     flag = -1
+    water = 12
 
 
 class Game:
@@ -42,10 +43,23 @@ class Game:
         :param col:
         :return:
         """
+        valid_moves = []
+
         if not self.is_moveable_cell(row, col):
             return []
 
-        pass
+        neighbors = get_neighbors(row, col)
+        for neighbor_cell in neighbors:
+            if neighbor_cell == Cell.empty:
+                valid_moves.append((row, col))
+            elif neighbor_cell != Cell.water:
+                valid_moves.append((row, col))
+
+
+
+
+
+
 
     def is_moveable_cell(self, row, col) -> bool:
         """
@@ -75,8 +89,8 @@ class Game:
         self.board.append([Cell.lieutenant, Cell.lieutenant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.miner, Cell.miner, Cell.miner, Cell.miner])
         self.board.append([Cell.miner, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.spy])
         # 2 empty rows
-        self.board.append([Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty])
-        self.board.append([Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty, Cell.empty])
+        self.board.append([Cell.empty, Cell.empty, Cell.water, Cell.water, Cell.empty, Cell.empty, Cell.water, Cell.water, Cell.empty, Cell.empty])
+        self.board.append([Cell.empty, Cell.empty, Cell.water, Cell.water, Cell.empty, Cell.empty, Cell.water, Cell.water, Cell.empty, Cell.empty])
         # 4 player rows
         self.board.append([Cell.miner, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.spy])
         self.board.append([Cell.lieutenant, Cell.lieutenant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.miner, Cell.miner, Cell.miner, Cell.miner])
