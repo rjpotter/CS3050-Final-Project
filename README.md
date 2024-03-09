@@ -43,7 +43,7 @@ The game Stratego. Stratego is a classic board game of battlefield strategy that
    - **Priority**: Important
    - **Difficulty**: Medium
    - **Notes**: Successful if we can get a window with a single graphic.
-   - **Status**: In Progress.
+   - **Status**: In Progress. We have successfully built the framework and initialized a window. 
 
 5. **List of Edge Cases**
    - **Priority**: Nice to have
