@@ -29,6 +29,7 @@ class Cell(Enum):
     flag = -1
     water = 12
 
+
 class Game_State(Enum):
     not_finished = -1
     capture_flag = 0
@@ -42,6 +43,7 @@ class Game:
         self.computer_player = Computer_Player()
         self.board = []
         self.intialize_board()
+        self.game_state = Game_State.not_finished
 
     def get_valid_moves(self, row: int, col: int) -> list[tuple[int, int]]:
         """
@@ -62,13 +64,78 @@ class Game:
             elif neighbor_cell != Cell.water:
                 valid_moves.append((row, col))
 
-    def game_end(self, winner, condition: Game_State):
-        # do stuff to display the winner here, not sure what this will look like yet.
+    def game_end(self, winner, condition: Game_State) -> None:
+        # do stuff to display the winner here, not sure what this will look like yet, largely graphics dependant
+        self.game_state = condition
         pass
+
+    def human_player_move(self, start_location: tuple[int, int], end_location: tuple[int, int]) -> bool:
+        """
+        human_player_move intakes a start and end location for a human piece and carries out the move
+        This method detects the player capturing the flag
+        This method DOES NOT detect if there are no valid human moves
+        This method updates the board list of Cells, along with each list of tuples for each player storing that
+        players' troop locations
+        :param start_location: start location tuple of the human piece being moved
+        :param end_location: end location tuple of the human piece being moved
+        :return: boolean, true if the move was valid, false otherwise
+        """
+        # make sure piece in start_location is move-able (i.e. not a bomb or a flag, and is a human piece)
+        if start_location not in self.human_player.troop_locations:  # piece is not a human's
+            return False
+        if not self.is_moveable_cell(start_location[0], start_location[1]):  # player tried to move one of their bombs or flag
+            return False
+
+        # make sure move is valid (to a neighbor square, not water, not occupied by own piece)
+        if end_location not in get_neighbors(start_location[0], start_location[1]):  # moving to a non-neighbor square
+            # TODO: change this conditional for special case of miners
+            return False
+        if end_location in self.human_player.troop_locations:  # human already has a piece in the destination cell
+            return False
+        if self.board[end_location[0]][end_location[1]] == Cell.water:  # human attempting to move to water
+            return False
+
+        # now we know that the piece is moveable and the move is valid, thus carry out comparison and the move
+        surviving_locations = compare_units(self.board, start_location, end_location)
+
+        # check for win
+        if len(surviving_locations) == 1 and surviving_locations[0] == Cell.flag:  # human captured comp flag
+            self.game_end("Human", Game_State.capture_flag)
+
+        # no win, update troop lists and board list
+        if len(surviving_locations) == 0:  # both troops died
+            # update the troop location lists
+            self.human_player.troop_locations.remove(start_location)
+            self.computer_player.troop_locations.remove(end_location)
+            # update the board cells
+            self.board[start_location[0]][start_location[1]] = Cell.empty
+            self.board[end_location[0]][end_location[1]] = Cell.empty
+
+        if start_location in surviving_locations:  # human troop survived, act accordingly
+            # update the board cells
+            self.board[end_location[0]][end_location[1]] = self.board[start_location[0]][start_location[1]]  # do this before we loose the information
+            self.board[start_location[0]][start_location[1]] = Cell.empty
+            # update the troop location lists
+            self.human_player.troop_locations.remove(start_location)
+            self.human_player.troop_locations.append(end_location)
+            self.computer_player.troop_locations.remove(end_location)
+
+        if end_location in surviving_locations:  # computer troop survived, act accordingly
+            # update the board cells
+            self.board[start_location[0]][start_location[1]] = Cell.empty
+            # update the troop location lists
+            self.human_player.troop_locations.remove(start_location)
+
+        return True
+
 
     def computer_player_move(self) -> None:
         """
         computer_player_move picks a random move able computer piece and makes a random valid move
+        This method detects a situation where there are no possible computer moves (computer loses)
+        This method detects the computer capturing the flag
+        This method updates the board list of Cells, along with each list of tuples for each player storing that
+        players' troop locations
         :return: nothing
         """
 
@@ -134,19 +201,6 @@ class Game:
             self.computer_player.troop_locations.remove(selected_troop_location)  # update computer troop list
             self.board[selected_troop_location[0]][selected_troop_location[1]] = Cell.empty  # update board locations
 
-
-
-
-
-
-
-
-
-
-
-
-
-
     def is_moveable_cell(self, row: int, col: int) -> bool:
         """
         is_moveable cell returns a bool depending on if there is a moveable unit at the location given by row,col
@@ -182,10 +236,6 @@ class Game:
         self.board.append([Cell.lieutenant, Cell.lieutenant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.miner, Cell.miner, Cell.miner, Cell.miner])
         self.board.append([Cell.colonel, Cell.major, Cell.major, Cell.major, Cell.captain, Cell.captain, Cell.captain, Cell.captain, Cell.lieutenant, Cell.lieutenant])
         self.board.append([Cell.flag, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.marshal, Cell.general, Cell.colonel])
-
-
-
-
 
 
 class Human_Player:
