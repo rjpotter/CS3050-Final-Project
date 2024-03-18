@@ -50,8 +50,10 @@ class Game:
 
         neighbors = get_neighbors(row, col)
         for neighbor_cell in neighbors:
+            # append empty cells to valid moves
             if neighbor_cell == Cell.empty:
                 valid_moves.append((row, col))
+            # append cells that are not water
             elif neighbor_cell != Cell.water:
                 valid_moves.append((row, col))
 
