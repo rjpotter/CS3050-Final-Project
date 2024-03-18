@@ -88,7 +88,7 @@ class Game:
 
         # make sure move is valid (to a neighbor square, not water, not occupied by own piece)
         if end_location not in get_neighbors(start_location[0], start_location[1]):  # moving to a non-neighbor square
-            # TODO: change this conditional for special case of miners
+            # TODO: change this conditional for special case of scout
             return False
         if end_location in self.human_player.troop_locations:  # human already has a piece in the destination cell
             return False
@@ -144,8 +144,12 @@ class Game:
         found_move = False
         valid_moves: list[tuple[int, int]] = []
         while not found_move and len(comp_troop_locations_copy) > 0:
-            troop_to_move_row, troop_to_move_col = comp_troop_locations_copy.pop(randint(0, len(comp_troop_locations_copy) - 1))
+            randint_upper_bound: int = len(comp_troop_locations_copy) - 1
+            print('upper bound: ', randint_upper_bound)
+            troop_to_move_row, troop_to_move_col = comp_troop_locations_copy.pop(randint(0, randint_upper_bound))
+
             while not self.is_moveable_cell(troop_to_move_row, troop_to_move_col):
+                print(len(comp_troop_locations_copy))
                 comp_troop_locations_copy.pop(randint(0, len(comp_troop_locations_copy) - 1))
             # we now know there is a move able troop at the row and col
 
@@ -172,7 +176,8 @@ class Game:
             self.game_end('Human', Game_State.no_moves)
         else:
             # have potentially many moves in valid_moves, pick a random one
-            selected_move = valid_moves.pop(randint(0, len(valid_moves) - 1))
+            print('valid moves:', (valid_moves))
+            selected_move: tuple[int, int] = valid_moves.pop(randint(0, len(valid_moves) - 1))
             selected_troop_location = (troop_to_move_row, troop_to_move_col)  # to get here must have row and col
 
             # now must carry out the move. First step is to do the comparison between the troops
@@ -208,10 +213,10 @@ class Game:
         :param col: col of potentially moveable unit
         :return: True if unit is moveable, false otw
         """
-        if row not in range(1, 11):
+        if row not in range(0, 10):
             print('invalid row in is_moveable_cell')
             return False
-        elif col not in range(1,11):
+        elif col not in range(0,10):
             print('invalid col in is_moveable_cell')
             return False
         # Know that we can safely index
@@ -257,9 +262,10 @@ class Computer_Player:
 
     def initialize_locations(self):
         # computer starts with troops in the top 4 rows of the board
-        for row in range(0, 5):
+        for row in range(0, 4):
             for col in range(10):
                 self.troop_locations.append((row, col))
+        #print('computer locations: ', self.troop_locations)
 
 
 def compare_units(board: list[list[Cell]], unit1_location: tuple[int, int], unit2_location: tuple[int, int]) -> list[tuple[int, int]]:
