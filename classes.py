@@ -56,13 +56,51 @@ class Game:
 
         if not self.is_moveable_cell(row, col):
             return []
+        starting_position = (row, col)
 
-        neighbors = get_neighbors(row, col)
+        if starting_position in self.computer_player.troop_locations:
+            is_computer_moving = True
+            is_human_moving = False
+        else:
+            is_computer_moving = False
+            is_human_moving = True
+
+        neighbors: list[tuple[int, int]] = get_neighbors(row, col)
         for neighbor_cell in neighbors:
-            if neighbor_cell == Cell.empty:
-                valid_moves.append((row, col))
-            elif neighbor_cell != Cell.water:
-                valid_moves.append((row, col))
+            #print('testing cell at space: ', neighbor_cell, 'with value of: ', self.board[neighbor_cell[0]][neighbor_cell[1]])
+            neighbor_cell_type: Cell = self.board[neighbor_cell[0]][neighbor_cell[1]]
+            if neighbor_cell_type != Cell.water:
+                #print('not water')
+                # can always move into an empty cell
+                if neighbor_cell_type == Cell.empty:
+                    valid_moves.append(neighbor_cell)
+                # if human is moving, can move onto a computer piece
+                elif is_human_moving and neighbor_cell in self.computer_player.troop_locations:
+                    valid_moves.append(neighbor_cell)
+                # if computer is moving, can move onto a human piece
+                elif is_computer_moving and neighbor_cell in self.human_player.troop_locations:
+                    valid_moves.append(neighbor_cell)
+                else:
+                    #print('invalid case in get_valid_moves')  # uncomment this for testing purposes
+                    pass
+
+        return valid_moves
+
+
+    def intialize_board(self):
+        # append computer player rows
+        self.board.append([Cell.flag, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.marshal, Cell.general, Cell.colonel])
+        self.board.append([Cell.colonel, Cell.major, Cell.major, Cell.major, Cell.captain, Cell.captain, Cell.captain, Cell.captain, Cell.lieutenant, Cell.lieutenant])
+        self.board.append([Cell.lieutenant, Cell.lieutenant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.miner, Cell.miner, Cell.miner, Cell.miner])
+        self.board.append([Cell.miner, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.spy])
+        # 2 empty rows
+        self.board.append([Cell.empty, Cell.empty, Cell.water, Cell.water, Cell.empty, Cell.empty, Cell.water, Cell.water, Cell.empty, Cell.empty])
+        self.board.append([Cell.empty, Cell.empty, Cell.water, Cell.water, Cell.empty, Cell.empty, Cell.water, Cell.water, Cell.empty, Cell.empty])
+        # 4 player rows
+        self.board.append([Cell.miner, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.spy])
+        self.board.append([Cell.lieutenant, Cell.lieutenant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.miner, Cell.miner, Cell.miner, Cell.miner])
+        self.board.append([Cell.colonel, Cell.major, Cell.major, Cell.major, Cell.captain, Cell.captain, Cell.captain, Cell.captain, Cell.lieutenant, Cell.lieutenant])
+        self.board.append([Cell.flag, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.marshal, Cell.general, Cell.colonel])
 
     def game_end(self, winner, condition: Game_State) -> None:
         # do stuff to display the winner here, not sure what this will look like yet, largely graphics dependant
@@ -80,19 +118,30 @@ class Game:
         :param end_location: end location tuple of the human piece being moved
         :return: boolean, true if the move was valid, false otherwise
         """
+        '''
         # make sure piece in start_location is move-able (i.e. not a bomb or a flag, and is a human piece)
         if start_location not in self.human_player.troop_locations:  # piece is not a human's
+            print('start location bad')
             return False
         if not self.is_moveable_cell(start_location[0], start_location[1]):  # player tried to move one of their bombs or flag
+            print('can not move bomb or flag')
             return False
 
         # make sure move is valid (to a neighbor square, not water, not occupied by own piece)
         if end_location not in get_neighbors(start_location[0], start_location[1]):  # moving to a non-neighbor square
             # TODO: change this conditional for special case of scout
+            print('can not move more than 1 square')
             return False
         if end_location in self.human_player.troop_locations:  # human already has a piece in the destination cell
+            print('can not move to own cell')
             return False
         if self.board[end_location[0]][end_location[1]] == Cell.water:  # human attempting to move to water
+            return False '''
+
+        #print('about to call get_valid_moves on location (', start_location[0], start_location[1], ')')
+        #valid_moves_from_start = self.get_valid_moves(start_location[0], start_location[1])
+        #print('possible moves that can be made from', start_location, ":", valid_moves_from_start)
+        if end_location not in self.get_valid_moves(start_location[0], start_location[1]):
             return False
 
         # now we know that the piece is moveable and the move is valid, thus carry out comparison and the move
@@ -104,23 +153,28 @@ class Game:
 
         # no win, update troop lists and board list
         if len(surviving_locations) == 0:  # both troops died
+            print('case 1')
             # update the troop location lists
             self.human_player.troop_locations.remove(start_location)
-            self.computer_player.troop_locations.remove(end_location)
+            if end_location in self.computer_player.troop_locations:
+                self.computer_player.troop_locations.remove(end_location)
             # update the board cells
             self.board[start_location[0]][start_location[1]] = Cell.empty
             self.board[end_location[0]][end_location[1]] = Cell.empty
 
         if start_location in surviving_locations:  # human troop survived, act accordingly
+            print('case 2')
             # update the board cells
             self.board[end_location[0]][end_location[1]] = self.board[start_location[0]][start_location[1]]  # do this before we loose the information
             self.board[start_location[0]][start_location[1]] = Cell.empty
             # update the troop location lists
             self.human_player.troop_locations.remove(start_location)
             self.human_player.troop_locations.append(end_location)
-            self.computer_player.troop_locations.remove(end_location)
+            if end_location in self.computer_player.troop_locations:
+                self.computer_player.troop_locations.remove(end_location)
 
         if end_location in surviving_locations:  # computer troop survived, act accordingly
+            print('case 3')
             # update the board cells
             self.board[start_location[0]][start_location[1]] = Cell.empty
             # update the troop location lists
@@ -155,6 +209,7 @@ class Game:
 
             # now find out if the move able troop actually has a move
             # start by finding candidate squares
+
             possible_moves: list[tuple[int, int]] = get_neighbors(troop_to_move_row, troop_to_move_col)
             for possible_move in possible_moves:  # test to see if move is possible, lots of edge cases
                 valid_move_bool = True
@@ -206,6 +261,7 @@ class Game:
             self.computer_player.troop_locations.remove(selected_troop_location)  # update computer troop list
             self.board[selected_troop_location[0]][selected_troop_location[1]] = Cell.empty  # update board locations
 
+
     def is_moveable_cell(self, row: int, col: int) -> bool:
         """
         is_moveable cell returns a bool depending on if there is a moveable unit at the location given by row,col
@@ -216,31 +272,17 @@ class Game:
         if row not in range(0, 10):
             print('invalid row in is_moveable_cell')
             return False
-        elif col not in range(0,10):
+        elif col not in range(0, 10):
             print('invalid col in is_moveable_cell')
             return False
         # Know that we can safely index
         # get value of Cell enum at argument location
         # if value is a moveable piece value, return true, else return false
+        print('row:', row, 'col: ', col, 'value: ', self.board[row][col].value)
         if self.board[row][col].value in range(1, 11):
             return True
         else:
             return False
-
-    def intialize_board(self):
-        # append computer player rows
-        self.board.append([Cell.flag, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.marshal, Cell.general, Cell.colonel])
-        self.board.append([Cell.colonel, Cell.major, Cell.major, Cell.major, Cell.captain, Cell.captain, Cell.captain, Cell.captain, Cell.lieutenant, Cell.lieutenant])
-        self.board.append([Cell.lieutenant, Cell.lieutenant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.miner, Cell.miner, Cell.miner, Cell.miner])
-        self.board.append([Cell.miner, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.spy])
-        # 2 empty rows
-        self.board.append([Cell.empty, Cell.empty, Cell.water, Cell.water, Cell.empty, Cell.empty, Cell.water, Cell.water, Cell.empty, Cell.empty])
-        self.board.append([Cell.empty, Cell.empty, Cell.water, Cell.water, Cell.empty, Cell.empty, Cell.water, Cell.water, Cell.empty, Cell.empty])
-        # 4 player rows
-        self.board.append([Cell.miner, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.spy])
-        self.board.append([Cell.lieutenant, Cell.lieutenant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.miner, Cell.miner, Cell.miner, Cell.miner])
-        self.board.append([Cell.colonel, Cell.major, Cell.major, Cell.major, Cell.captain, Cell.captain, Cell.captain, Cell.captain, Cell.lieutenant, Cell.lieutenant])
-        self.board.append([Cell.flag, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.marshal, Cell.general, Cell.colonel])
 
 
 class Human_Player:
@@ -310,19 +352,21 @@ def get_neighbors(row: int, col: int) -> list[tuple[int, int]]:
     :param col: col of input location
     :return: list of tuples representing locations of valid neighbor cells
     """
+
     neighbors = []
     # if not on top row, get top neighbor
-    if row > 1:
+    if row > 0:
         neighbors.append((row - 1, col))
     # if not on bottom row, get bottom neighbor
-    if row < 10:
+    if row < 9:
         neighbors.append((row + 1, col))
     # if not on left col, get left neighbor
-    if col > 1:
+    if col > 0:
         neighbors.append((row, col - 1))
     # if not on right col, get right neighbor
-    if col < 10:
+    if col < 9:
         neighbors.append((row, col + 1))
     # return result
+    print('returning from get neighbors:', neighbors)
     return neighbors
 
