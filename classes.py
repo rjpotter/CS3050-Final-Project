@@ -118,29 +118,21 @@ class Game:
         :param end_location: end location tuple of the human piece being moved
         :return: boolean, true if the move was valid, false otherwise
         """
-        '''
-        # make sure piece in start_location is move-able (i.e. not a bomb or a flag, and is a human piece)
-        if start_location not in self.human_player.troop_locations:  # piece is not a human's
-            print('start location bad')
-            return False
-        if not self.is_moveable_cell(start_location[0], start_location[1]):  # player tried to move one of their bombs or flag
-            print('can not move bomb or flag')
-            return False
 
-        # make sure move is valid (to a neighbor square, not water, not occupied by own piece)
-        if end_location not in get_neighbors(start_location[0], start_location[1]):  # moving to a non-neighbor square
-            # TODO: change this conditional for special case of scout
-            print('can not move more than 1 square')
-            return False
-        if end_location in self.human_player.troop_locations:  # human already has a piece in the destination cell
-            print('can not move to own cell')
-            return False
-        if self.board[end_location[0]][end_location[1]] == Cell.water:  # human attempting to move to water
-            return False '''
+        # check to see if the human has lost (isn't able to make a move)
+        human_troop_locations_copy = self.human_player.troop_locations.copy()
+        valid_moves: list[tuple[int, int]] = []
+        while len(valid_moves) == 0 and len(human_troop_locations_copy) > 0:
+            randint_upper_bound: int = len(human_troop_locations_copy) - 1
+            # print('upper bound: ', randint_upper_bound)
+            troop_to_move_row, troop_to_move_col = human_troop_locations_copy.pop(randint(0, randint_upper_bound))
+            valid_moves.extend(self.get_valid_moves(troop_to_move_row, troop_to_move_col))  # add the valid moves for the troop
 
-        #print('about to call get_valid_moves on location (', start_location[0], start_location[1], ')')
-        #valid_moves_from_start = self.get_valid_moves(start_location[0], start_location[1])
-        #print('possible moves that can be made from', start_location, ":", valid_moves_from_start)
+        # if we couldn't find a valid move, then the human won
+        if len(valid_moves) == 0:
+            self.game_end('Computer', Game_State.no_moves)
+
+
         if end_location not in self.get_valid_moves(start_location[0], start_location[1]):
             return False
 
@@ -153,7 +145,6 @@ class Game:
 
         # no win, update troop lists and board list
         if len(surviving_locations) == 0:  # both troops died
-            print('case 1')
             # update the troop location lists
             self.human_player.troop_locations.remove(start_location)
             if end_location in self.computer_player.troop_locations:
@@ -163,7 +154,6 @@ class Game:
             self.board[end_location[0]][end_location[1]] = Cell.empty
 
         if start_location in surviving_locations:  # human troop survived, act accordingly
-            print('case 2')
             # update the board cells
             self.board[end_location[0]][end_location[1]] = self.board[start_location[0]][start_location[1]]  # do this before we loose the information
             self.board[start_location[0]][start_location[1]] = Cell.empty
@@ -174,7 +164,6 @@ class Game:
                 self.computer_player.troop_locations.remove(end_location)
 
         if end_location in surviving_locations:  # computer troop survived, act accordingly
-            print('case 3')
             # update the board cells
             self.board[start_location[0]][start_location[1]] = Cell.empty
             # update the troop location lists
@@ -197,46 +186,25 @@ class Game:
 
         found_move = False
         valid_moves: list[tuple[int, int]] = []
-        while not found_move and len(comp_troop_locations_copy) > 0:
+        while len(valid_moves) == 0 and len(comp_troop_locations_copy) > 0:
             randint_upper_bound: int = len(comp_troop_locations_copy) - 1
-            print('upper bound: ', randint_upper_bound)
+            #print('upper bound: ', randint_upper_bound)
             troop_to_move_row, troop_to_move_col = comp_troop_locations_copy.pop(randint(0, randint_upper_bound))
-
-            while not self.is_moveable_cell(troop_to_move_row, troop_to_move_col):
-                print(len(comp_troop_locations_copy))
-                comp_troop_locations_copy.pop(randint(0, len(comp_troop_locations_copy) - 1))
-            # we now know there is a move able troop at the row and col
-
-            # now find out if the move able troop actually has a move
-            # start by finding candidate squares
-
-            possible_moves: list[tuple[int, int]] = get_neighbors(troop_to_move_row, troop_to_move_col)
-            for possible_move in possible_moves:  # test to see if move is possible, lots of edge cases
-                valid_move_bool = True
-                # test if computer already has a piece there
-                if possible_move in self.computer_player.troop_locations:
-                    valid_move_bool = False
-                # test if candidate move would move piece into lake
-                possible_row, possible_col = possible_move
-                if self.board[possible_row][possible_col] == Cell.water:
-                    valid_move_bool = False
-
-                # if we valid_move_bool = True, then we have a possible, valid move
-                if valid_move_bool:
-                    valid_moves.append(possible_move)
-                    found_move = True
+            valid_moves.extend(self.get_valid_moves(troop_to_move_row, troop_to_move_col))  # add the valid moves for the troop
+        print('troop to move row: ', troop_to_move_row, "troop to move col: ", troop_to_move_col)
+        print('valid moves: ', valid_moves)
 
         # if we couldn't find a valid move, then the human won
-        if not found_move:
+        if len(valid_moves) == 0:
             self.game_end('Human', Game_State.no_moves)
         else:
             # have potentially many moves in valid_moves, pick a random one
-            print('valid moves:', (valid_moves))
             selected_move: tuple[int, int] = valid_moves.pop(randint(0, len(valid_moves) - 1))
+            print('selected move:', selected_move)
             selected_troop_location = (troop_to_move_row, troop_to_move_col)  # to get here must have row and col
 
             # now must carry out the move. First step is to do the comparison between the troops
-            surviving_locations: list[tuple[int, int]] = compare_units(selected_troop_location, selected_move)
+            surviving_locations: list[tuple[int, int]] = compare_units(self.board, selected_troop_location, selected_move)
 
 
             # check to see if the computer captured the flag, if so, end game
@@ -250,7 +218,7 @@ class Game:
                 self.board[selected_move[0]][selected_move[1]] = self.board[selected_troop_location[0]][selected_troop_location[1]]
 
             # deal with player troop, if applicable
-            if selected_move not in surviving_locations:
+            if selected_move not in surviving_locations and selected_move in self.human_player.troop_locations:
                 # remove player troop from list of player troop locations
                 self.human_player.troop_locations.remove(selected_move)
 
@@ -278,7 +246,7 @@ class Game:
         # Know that we can safely index
         # get value of Cell enum at argument location
         # if value is a moveable piece value, return true, else return false
-        print('row:', row, 'col: ', col, 'value: ', self.board[row][col].value)
+        #print('row:', row, 'col: ', col, 'value: ', self.board[row][col].value)
         if self.board[row][col].value in range(1, 11):
             return True
         else:
@@ -386,6 +354,6 @@ def get_neighbors(row: int, col: int) -> list[tuple[int, int]]:
     if col < 9:
         neighbors.append((row, col + 1))
     # return result
-    print('returning from get neighbors:', neighbors)
+    #print('returning from get neighbors:', neighbors)
     return neighbors
 
