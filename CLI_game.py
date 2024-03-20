@@ -25,15 +25,18 @@ def run_game():
     game = Game()
     # while loop
     display_board(game)
-    print(game.human_player.troop_locations)
-    print((6, 4) in game.human_player.troop_locations)
-    print(game.human_player_move((6, 4), (5, 4)))
+    game.human_player_move((6, 4), (5, 4))
     display_board(game)
-    game.human_player_move((5,4), (4,4))
+    game.computer_player_move()
     display_board(game)
-    game.human_player_move((4,4), (3,4))
+    game.human_player_move((5, 4), (4, 4))
     display_board(game)
-
+    game.computer_player_move()
+    display_board(game)
+    game.human_player_move((4, 4), (3, 4))
+    display_board(game)
+    game.computer_player_move()
+    display_board(game)
 
 
 
