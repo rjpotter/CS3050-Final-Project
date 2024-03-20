@@ -119,6 +119,20 @@ class Game:
         :return: boolean, true if the move was valid, false otherwise
         """
 
+        # check to see if the human has lost (isn't able to make a move)
+        human_troop_locations_copy = self.human_player.troop_locations.copy()
+        valid_moves: list[tuple[int, int]] = []
+        while len(valid_moves) == 0 and len(human_troop_locations_copy) > 0:
+            randint_upper_bound: int = len(human_troop_locations_copy) - 1
+            # print('upper bound: ', randint_upper_bound)
+            troop_to_move_row, troop_to_move_col = human_troop_locations_copy.pop(randint(0, randint_upper_bound))
+            valid_moves.extend(self.get_valid_moves(troop_to_move_row, troop_to_move_col))  # add the valid moves for the troop
+
+        # if we couldn't find a valid move, then the human won
+        if len(valid_moves) == 0:
+            self.game_end('Human', Game_State.no_moves)
+
+
         if end_location not in self.get_valid_moves(start_location[0], start_location[1]):
             return False
 
@@ -131,7 +145,6 @@ class Game:
 
         # no win, update troop lists and board list
         if len(surviving_locations) == 0:  # both troops died
-            print('case 1')
             # update the troop location lists
             self.human_player.troop_locations.remove(start_location)
             if end_location in self.computer_player.troop_locations:
@@ -141,7 +154,6 @@ class Game:
             self.board[end_location[0]][end_location[1]] = Cell.empty
 
         if start_location in surviving_locations:  # human troop survived, act accordingly
-            print('case 2')
             # update the board cells
             self.board[end_location[0]][end_location[1]] = self.board[start_location[0]][start_location[1]]  # do this before we loose the information
             self.board[start_location[0]][start_location[1]] = Cell.empty
@@ -152,7 +164,6 @@ class Game:
                 self.computer_player.troop_locations.remove(end_location)
 
         if end_location in surviving_locations:  # computer troop survived, act accordingly
-            print('case 3')
             # update the board cells
             self.board[start_location[0]][start_location[1]] = Cell.empty
             # update the troop location lists
