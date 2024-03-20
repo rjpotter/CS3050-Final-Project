@@ -130,7 +130,7 @@ class Game:
 
         # if we couldn't find a valid move, then the human won
         if len(valid_moves) == 0:
-            self.game_end('Human', Game_State.no_moves)
+            self.game_end('Computer', Game_State.no_moves)
 
 
         if end_location not in self.get_valid_moves(start_location[0], start_location[1]):
