@@ -1,6 +1,6 @@
 from classes import Cell
 from classes import Game
-
+from classes import Game_State
 DISPLAY_DICT = {
     Cell.spy: ' 1',
     Cell.scout: ' 2',
@@ -23,8 +23,28 @@ DISPLAY_DICT = {
 def run_game():
     # set up game
     game = Game()
-    # while loop
     display_board(game)
+    turn_tracker = 1
+    # use the Game_State enum to determine if another turn should be played
+    while Game_State.not_finished:
+        # if turn tracker is odd, human is moving
+        if turn_tracker % 2 == 1:
+            player_move = get_player_move()
+            start_row = player_move[0][0]
+            start_col = player_move[0][1]
+            end_row = player_move[1][0]
+            end_col = player_move[1][1]
+            game.human_player_move((start_row, start_col), (end_row, end_col))
+        # if turn tracker is odd computer is moving
+        else:
+            # game.computer_player_move()
+            pass
+        turn_tracker += 1
+        display_board(game)
+
+
+
+    '''
     print(game.human_player.troop_locations)
     print((6, 4) in game.human_player.troop_locations)
     print(game.human_player_move((6, 4), (5, 4)))
@@ -33,6 +53,25 @@ def run_game():
     display_board(game)
     game.human_player_move((4,4), (3,4))
     display_board(game)
+    '''
+def get_player_move() -> tuple[tuple[int, int], tuple[int, int]]:
+    # take user row and columns as inputs and cast them as ints
+    print("Input the location of the piece you want to move:")
+    start_row = input("Row:")
+    start_row = int(start_row)
+    start_col = input("Column:")
+    start_col = int(start_col)
+    start_tuple = (start_row, start_col)
+    print("Enter where you want to move the piece:")
+    end_row = input("Row:")
+    end_row = int(end_row)
+    end_col = input("Column:")
+    end_col = int(end_col)
+    end_tuple = (end_row, end_col)
+    # return a tuple of tuples of ints containing start and end location data
+    player_move = (start_tuple, end_tuple)
+    return player_move
+
 
 
 
