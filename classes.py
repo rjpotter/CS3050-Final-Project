@@ -105,7 +105,7 @@ class Game:
     def game_end(self, winner, condition: Game_State) -> None:
         # do stuff to display the winner here, not sure what this will look like yet, largely graphics dependant
         self.game_state = condition
-        pass
+        print('game is over.\n', winner, 'won the game.')
 
     def human_player_move(self, start_location: tuple[int, int], end_location: tuple[int, int]) -> bool:
         """
@@ -191,8 +191,8 @@ class Game:
             #print('upper bound: ', randint_upper_bound)
             troop_to_move_row, troop_to_move_col = comp_troop_locations_copy.pop(randint(0, randint_upper_bound))
             valid_moves.extend(self.get_valid_moves(troop_to_move_row, troop_to_move_col))  # add the valid moves for the troop
-        print('troop to move row: ', troop_to_move_row, "troop to move col: ", troop_to_move_col)
-        print('valid moves: ', valid_moves)
+        #print('troop to move row: ', troop_to_move_row, "troop to move col: ", troop_to_move_col)
+        #print('valid moves: ', valid_moves)
 
         # if we couldn't find a valid move, then the human won
         if len(valid_moves) == 0:
@@ -200,7 +200,7 @@ class Game:
         else:
             # have potentially many moves in valid_moves, pick a random one
             selected_move: tuple[int, int] = valid_moves.pop(randint(0, len(valid_moves) - 1))
-            print('selected move:', selected_move)
+            #print('selected move:', selected_move)
             selected_troop_location = (troop_to_move_row, troop_to_move_col)  # to get here must have row and col
 
             # now must carry out the move. First step is to do the comparison between the troops

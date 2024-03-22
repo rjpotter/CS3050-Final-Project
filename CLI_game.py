@@ -37,8 +37,8 @@ def run_game():
             game.human_player_move((start_row, start_col), (end_row, end_col))
         # if turn tracker is odd computer is moving
         else:
-            # game.computer_player_move()
-            pass
+            game.computer_player_move()
+
         turn_tracker += 1
         display_board(game)
 
@@ -98,7 +98,6 @@ def display_board(game: Game):
             to_print += "|"
         print(to_print)
         print('-------------------------------------------')
-    print('\n\n')
 
 
 run_game()
