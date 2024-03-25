@@ -17,8 +17,46 @@ The game Stratego. Stratego is a classic board game of battlefield strategy that
 - **Winning**: The game ends when one player captures the opponent's flag or the opponent cannot make any legal moves.
 - **Prohibited Moves**: Pieces cannot move back and forth between the same two squares repeatedly (two-square rule) to avoid indefinite continuation of the game.
 
-## Sprint 1 Goals
+## Sprint 2 Goals
+## Date
+3/25/2024
+### Task Priorities and Details
 
+### 1. Human Player Movement Function
+- **Priority**: Must Have
+- **Difficulty**: Medium
+- **Notes**: Implement functionality to process and execute player's move commands, updating the game state with the new positions of moved pieces.
+- **Status**: Pending. A function to take two cell locations indicating a move and update the game state is required.
+
+### 2. Computer Player Movement Function
+- **Priority**: Must Have
+- **Difficulty**: Hard
+- **Notes**: Develop a function that allows the computer to select and perform moves randomly, updating the game state after each move.
+- **Status**: Pending. Initial structure for generating computer moves is set, but integration into the game loop and state update is needed.
+
+### 3. CLI Interface for the Game
+- **Priority**: Nice to Have
+- **Difficulty**: Easy
+- **Notes**: Develop a simple CLI for the game to facilitate testing and early gameplay experiences. This interface should support game start, displaying the board, and taking player input.
+- **Status**: In Progress. Basic CLI structure is in place, including board display and initial input handling. Further refinement and feature additions are underway.
+
+### 4. Make Game Playable
+- **Priority**: Nice to Have
+- **Difficulty**: Medium
+- **Notes**: Ensure that the game can alternate turns between the human and computer players, applying game rules to determine win conditions.
+- **Status**: In Progress. Turn-taking mechanics are partially implemented. Completion of player movement functions and integration with game win conditions is pending.
+
+### 5. Graphics: Fully Rendered
+- **Priority**: Must Have
+- **Difficulty**: Medium
+- **Notes**: All game textures should be rendered within the game's GUI. Interactivity is not a requirement for this sprint but will be addressed in future development.
+- **Status**: Pending. Framework and window initialization are complete. Graphics rendering for game elements is the next step.
+
+## -----------------------------------------------
+
+## Sprint 1 Goals
+## Date
+3/4/2024
 ### Task Priorities and Details
 
 1. **Initialize Board**
@@ -37,7 +75,7 @@ The game Stratego. Stratego is a classic board game of battlefield strategy that
    - **Priority**: Important
    - **Difficulty**: Medium
    - **Notes**: Moves can be mostly random, scouts will not be able to do non-standard moves.
-   - **Status**: In Progress. Basic infrastructure for move generation is in place, though specific logic for moves, including scouts, is pending.
+   - **Status**: Completed. Basic infrastructure for move generation is in place, though specific logic for moves, including scouts, is pending.
 
 4. **Learn PyArcade**
    - **Priority**: Important
@@ -62,6 +100,3 @@ The game Stratego. Stratego is a classic board game of battlefield strategy that
    - **Difficulty**: Easy
    - **Notes**: Basically deciding who wins based on a troop attacking another.
    - **Status**: Completed for basic cases. Additional logic for more complex troop interactions is in development.
-
-## Date
-3/4/2024
