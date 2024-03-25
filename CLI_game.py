@@ -74,13 +74,13 @@ def get_player_move() -> tuple[tuple[int, int], tuple[int, int]]:
 
 
 
-
-
-
 def display_board(game: Game, turn_tracker: int):
+    # Display turn number, make every 2 turns display as 1 (human & computer on same turn)
     if turn_tracker % 2 == 1:
+        # Human turn
         print(f"\nTurn: {(turn_tracker//2) + 1} Player\n")
     else:
+        # Computer turn
         print(f"\nTurn: {((turn_tracker - 1)//2) + 1} Computer\n")
     # print top row
     print('  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9')
@@ -91,15 +91,25 @@ def display_board(game: Game, turn_tracker: int):
             to_print = str(row) + '|'
         else:
             to_print = str(row) + ' |'
-        for col in range(0, 10):
+        for col in range(10):
+            # Determine if this cell is the last move of human or computer
+            color_code = ""
+            if (row, col) == game.last_human_move:
+                color_code = "\033[92m"  # Green for human
+            elif (row, col) == game.last_computer_move:
+                color_code = "\033[91m"  # Red for computer
+
             if (row, col) in game.human_player.troop_locations:
-                to_print += "H"
+                cell_owner = "H"
             elif (row, col) in game.computer_player.troop_locations:
-                to_print += "C"
+                cell_owner = "C"
             else:
-                to_print += " "
-            to_print += DISPLAY_DICT[game.board[row][col]]
-            to_print += "|"
+                cell_owner = " "
+
+            cell_display = DISPLAY_DICT[game.board[row][col]]
+            # Print move with color (for last piece moved)
+            to_print += f"{color_code}{cell_owner}{cell_display}\033[0m|"  # Reset color after each cell
+
         print(to_print)
         print('-------------------------------------------')
 

@@ -39,6 +39,8 @@ class Game_State(Enum):
 
 class Game:
     def __init__(self):
+        self.last_human_move = (-1, -1)
+        self.last_computer_move = (-1, -1)
         self.human_player = Human_Player()
         self.computer_player = Computer_Player()
         self.board = []
@@ -169,6 +171,9 @@ class Game:
             # update the troop location lists
             self.human_player.troop_locations.remove(start_location)
 
+        # Update the last move location
+        self.last_human_move = end_location
+
         return True
 
 
@@ -228,6 +233,11 @@ class Game:
             # whatever happened, the moved troop will not be where it originally was (either died or was moved)
             self.computer_player.troop_locations.remove(selected_troop_location)  # update computer troop list
             self.board[selected_troop_location[0]][selected_troop_location[1]] = Cell.empty  # update board locations
+
+            # Set end_loction as the selected move
+            end_location = selected_move
+           # Update the last move location
+            self.last_computer_move = end_location
 
 
     def is_moveable_cell(self, row: int, col: int) -> bool:
