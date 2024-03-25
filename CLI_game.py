@@ -23,8 +23,8 @@ DISPLAY_DICT = {
 def run_game():
     # set up game
     game = Game()
-    display_board(game)
     turn_tracker = 1
+    display_board(game, turn_tracker)
     # use the Game_State enum to determine if another turn should be played
     while Game_State.not_finished:
         # if turn tracker is odd, human is moving
@@ -35,12 +35,12 @@ def run_game():
             end_row = player_move[1][0]
             end_col = player_move[1][1]
             game.human_player_move((start_row, start_col), (end_row, end_col))
-        # if turn tracker is odd computer is moving
+        # if turn tracker is even computer is moving
         else:
             game.computer_player_move()
 
         turn_tracker += 1
-        display_board(game)
+        display_board(game, turn_tracker)
 
 
 
@@ -77,7 +77,11 @@ def get_player_move() -> tuple[tuple[int, int], tuple[int, int]]:
 
 
 
-def display_board(game: Game):
+def display_board(game: Game, turn_tracker: int):
+    if turn_tracker % 2 == 1:
+        print(f"\nTurn: {(turn_tracker//2) + 1} Player\n")
+    else:
+        print(f"\nTurn: {((turn_tracker - 1)//2) + 1} Computer\n")
     # print top row
     print('  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9')
     print('-------------------------------------------')
