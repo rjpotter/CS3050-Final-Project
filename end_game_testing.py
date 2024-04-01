@@ -1,6 +1,7 @@
-from classes import Cell
 from classes import Game
+from classes import Cell
 from classes import Game_State
+
 DISPLAY_DICT = {
     Cell.spy: ' 1',
     Cell.scout: ' 2',
@@ -25,6 +26,15 @@ def run_game():
     game = Game()
     turn_tracker = 1
     display_board(game, turn_tracker)
+    # force board into end state
+    game.board[4][0] = Cell.bomb
+    game.board[4][1] = Cell.bomb
+    game.board[4][4] = Cell.bomb
+    game.board[4][5] = Cell.bomb
+    game.board[4][8] = Cell.bomb
+    game.board[4][9] = Cell.bomb
+    display_board(game, turn_tracker)
+
     # use the Game_State enum to determine if another turn should be played
     while game.game_state == Game_State.not_finished:
         # if turn tracker is odd, human is moving
@@ -41,6 +51,7 @@ def run_game():
 
         turn_tracker += 1
         display_board(game, turn_tracker)
+        print()
 
 
 
