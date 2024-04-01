@@ -81,8 +81,8 @@ class MyGame(arcade.Window):
             # x, y, width, height, texture, angle, alpha
             500,     # random temp value
             500,     # random temp value
-            PIECE_WIDTH * 2,
-            PIECE_HEIGHT * 2,
+            PIECE_WIDTH / 4,
+            PIECE_HEIGHT / 4,
             self.blue_piece_textures[0],
             0,
             255
