@@ -26,13 +26,13 @@ The game Stratego. Stratego is a classic board game of battlefield strategy that
 - **Priority**: Must Have
 - **Difficulty**: Medium
 - **Notes**: Implement functionality to process and execute player's move commands, updating the game state with the new positions of moved pieces.
-- **Status**: Pending. A function to take two cell locations indicating a move and update the game state is required.
+- **Status**: Complete. Some testing done and passes all tests thrown at it thus far. Will likely do more testing when graphics are added.
 
 ### 2. Computer Player Movement Function
 - **Priority**: Must Have
 - **Difficulty**: Hard
 - **Notes**: Develop a function that allows the computer to select and perform moves randomly, updating the game state after each move.
-- **Status**: Pending. Initial structure for generating computer moves is set, but integration into the game loop and state update is needed.
+- **Status**: Complete. Some testing done. More testing will be completed when interface to play is further developed.
 
 ### 3. CLI Interface for the Game
 - **Priority**: Nice to Have
