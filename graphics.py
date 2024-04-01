@@ -35,8 +35,6 @@ class MyGame(arcade.Window):
         # and set them to None
         self.red_piece_textures = []
         self.blue_piece_textures = []
-        self.blue_piece_sprites = arcade.SpriteList()
-        self.red_piece_sprites = arcade.SpriteList()
 
     def setup(self):
         """
