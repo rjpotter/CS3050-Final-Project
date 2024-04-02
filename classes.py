@@ -67,6 +67,10 @@ class Game:
             is_computer_moving = False
             is_human_moving = True
 
+        if self.board[row][col] == Cell.scout:
+            scout_moves = self.get_valid_moves_scout(row, col)
+            for item in scout_moves:
+                valid_moves.append(item)
         neighbors: list[tuple[int, int]] = get_neighbors(row, col)
         for neighbor_cell in neighbors:
             #print('testing cell at space: ', neighbor_cell, 'with value of: ', self.board[neighbor_cell[0]][neighbor_cell[1]])
@@ -85,6 +89,64 @@ class Game:
                 else:
                     #print('invalid case in get_valid_moves')  # uncomment this for testing purposes
                     pass
+
+        return valid_moves
+
+    def get_valid_moves_scout(self, row: int, col: int) -> list[tuple[int, int]]:
+        # all_moves: list[tuple[int, int]] = []
+        #
+        # starting_position = (row, col)
+        # for x in range (0, 9):
+        #     if x != row:
+        #         move = (row, x)
+        #         all_moves.append(move)
+        #     elif x != col:
+        #         move = (x, col)
+        #         all_moves.append(move)
+
+        valid_moves: list[tuple[int, int]] = []
+
+        # get moves below current move
+        current_row = row
+        while(current_row > 0):
+            current_row -= 1
+            if self.board[current_row][col] == Cell.empty:
+                move = (current_row, col)
+                valid_moves.append(move)
+            else:
+                current_row = 0
+
+        # get moves above
+        current_row = row
+        while (current_row < 9):
+            current_row += 1
+            if self.board[current_row][col] == Cell.empty:
+                move = (current_row, col)
+                valid_moves.append(move)
+            else:
+                current_row = 9
+
+        # get moves to the right
+        current_col = col
+        while (current_col > 0):
+            current_col -= 1
+            if self.board[row][current_col] == Cell.empty:
+                move = (row, current_col)
+                valid_moves.append(move)
+            else:
+                current_col = 0
+
+        # get moves to the left
+        current_col = col
+        while (current_col < 9):
+            current_col += 1
+            if self.board[row][current_col] == Cell.empty:
+                move = (row, current_col)
+                valid_moves.append(move)
+            else:
+                current_col = 9
+
+        print(valid_moves)
 
         return valid_moves
 
@@ -366,4 +428,7 @@ def get_neighbors(row: int, col: int) -> list[tuple[int, int]]:
     # return result
     #print('returning from get neighbors:', neighbors)
     return neighbors
+
+
+
 
