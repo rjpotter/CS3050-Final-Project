@@ -150,22 +150,6 @@ class Game:
 
         return valid_moves
 
-
-    def intialize_board(self):
-        # append computer player rows
-        self.board.append([Cell.flag, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.marshal, Cell.general, Cell.colonel])
-        self.board.append([Cell.colonel, Cell.major, Cell.major, Cell.major, Cell.captain, Cell.captain, Cell.captain, Cell.captain, Cell.lieutenant, Cell.lieutenant])
-        self.board.append([Cell.lieutenant, Cell.lieutenant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.miner, Cell.miner, Cell.miner, Cell.miner])
-        self.board.append([Cell.miner, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.spy])
-        # 2 empty rows
-        self.board.append([Cell.empty, Cell.empty, Cell.water, Cell.water, Cell.empty, Cell.empty, Cell.water, Cell.water, Cell.empty, Cell.empty])
-        self.board.append([Cell.empty, Cell.empty, Cell.water, Cell.water, Cell.empty, Cell.empty, Cell.water, Cell.water, Cell.empty, Cell.empty])
-        # 4 player rows
-        self.board.append([Cell.miner, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.spy])
-        self.board.append([Cell.lieutenant, Cell.lieutenant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.miner, Cell.miner, Cell.miner, Cell.miner])
-        self.board.append([Cell.colonel, Cell.major, Cell.major, Cell.major, Cell.captain, Cell.captain, Cell.captain, Cell.captain, Cell.lieutenant, Cell.lieutenant])
-        self.board.append([Cell.flag, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.marshal, Cell.general, Cell.colonel])
-
     def game_end(self, winner, condition: Game_State) -> None:
         # do stuff to display the winner here, not sure what this will look like yet, largely graphics dependant
         self.game_state = condition
@@ -204,7 +188,7 @@ class Game:
         surviving_locations = compare_units(self.board, start_location, end_location)
 
         # check for win
-        if len(surviving_locations) == 1 and surviving_locations[0] == Cell.flag:  # human captured comp flag
+        if len(surviving_locations) == 1 and self.board[surviving_locations[0][0]][surviving_locations[0][1]] == Cell.flag:  # human captured comp flag
             self.game_end("Human", Game_State.capture_flag)
 
         # no win, update troop lists and board list
@@ -325,11 +309,20 @@ class Game:
             return False
 
     def intialize_board(self):
+
         # append computer player rows
         self.board.append([Cell.flag, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.marshal, Cell.general, Cell.colonel])
         self.board.append([Cell.colonel, Cell.major, Cell.major, Cell.major, Cell.captain, Cell.captain, Cell.captain, Cell.captain, Cell.lieutenant, Cell.lieutenant])
         self.board.append([Cell.lieutenant, Cell.lieutenant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.sergeant, Cell.miner, Cell.miner, Cell.miner, Cell.miner])
         self.board.append([Cell.miner, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.scout, Cell.spy])
+
+        # Init computer locations with empty cells
+        for row in range(4):
+            for col in range(10):
+                self.board[row][col] = Cell.empty
+        # call the computer init function to set up the computer cells
+        self.initialize_computer_board()
+
         # 2 empty rows
         self.board.append([Cell.empty, Cell.empty, Cell.water, Cell.water, Cell.empty, Cell.empty, Cell.water, Cell.water, Cell.empty, Cell.empty])
         self.board.append([Cell.empty, Cell.empty, Cell.water, Cell.water, Cell.empty, Cell.empty, Cell.water, Cell.water, Cell.empty, Cell.empty])
@@ -339,8 +332,134 @@ class Game:
         self.board.append([Cell.colonel, Cell.major, Cell.major, Cell.major, Cell.captain, Cell.captain, Cell.captain, Cell.captain, Cell.lieutenant, Cell.lieutenant])
         self.board.append([Cell.flag, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.bomb, Cell.marshal, Cell.general, Cell.colonel])
 
+    def initialize_computer_board(self):
+        """
+        initialize_computer_board populates the computer side of the board with a partially-random computer setup...
+        we will enforce some parameters to create a somewhat-strategic setup
+        This will assume the board field has existing (empty) location indexes
+        :return:
+        """
+        # assume the computer rows on the board are empty, but exist
+        # make list of locations that have been filled in this function, empty now
+        filled_cells: list[tuple[int, int]] = []
 
+        """PLACE FLAG"""
+        # place flag on back row in a random location, add location to the filled_cells list
+        flag_col = randint(0, 9)
+        self.board[0][flag_col] = Cell.flag
+        filled_cells.append((0, flag_col))
 
+        """PLACE BOMBS"""
+        # place 2 bombs around the flag, use get_neighbors to select locations, have 4 bombs left
+        flag_neighbors: list[tuple[int, int]] = get_neighbors(0, flag_col)
+        for i in range(2):
+            bomb_cell_row, bomb_cell_col = flag_neighbors.pop()
+            self.board[bomb_cell_row][bomb_cell_col] = Cell.bomb
+            # add cells to filled_cells
+            filled_cells.append((bomb_cell_row, bomb_cell_col))
+
+        # place more 2 bombs in row 1
+        candidate_cols = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        row_1_bomb_cols: list[int] = []
+        while len(row_1_bomb_cols) < 2:  # while we haven't found 2 empty cols yet
+            candidate_col = candidate_cols.pop(randint(0, len(candidate_cols) - 1))
+            if (1, candidate_col) not in filled_cells:  # found empty col in col 1, put a bomb there!
+                row_1_bomb_cols.append(candidate_col)
+                self.board[1][candidate_col] = Cell.bomb
+                filled_cells.append((1, candidate_col))  # record the cell being filled
+
+        # place 2 bombs in row 2
+        candidate_cols = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        row_2_bomb_cols: list[int] = []
+        while len(row_2_bomb_cols) < 2:  # while we haven't found 2 empty cols yet
+            candidate_col = candidate_cols.pop(randint(0, len(candidate_cols) - 1))
+            if (2, candidate_col) not in filled_cells:  # found empty col in col 1, put a bomb there!
+                row_2_bomb_cols.append(candidate_col)
+                self.board[2][candidate_col] = Cell.bomb
+                filled_cells.append((2, candidate_col))  # record the cell being filled
+
+        """PLACE SPY"""
+        # spy will go on row 3, most forward computer row
+        spy_col = randint(0, 9)
+        self.board[3][spy_col] = Cell.spy
+        filled_cells.append((3, spy_col))
+
+        """PLACE MINERS"""
+        # one miner will go on row 3, rest on row 2
+        row_3_miner_offset_from_spy = randint(1, 9)
+        row_3_miner_col = (spy_col + row_3_miner_offset_from_spy) % 10
+        self.board[3][row_3_miner_col] = Cell.miner
+        filled_cells.append((3, row_3_miner_col))
+        # find 4 empty locations in row 2
+        col_indices: list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        row_2_miner_cols = []
+        while len(row_2_miner_cols) < 4:
+            candidate_col = col_indices.pop(randint(0, len(col_indices) - 1))  # pick random col
+            if not (2, candidate_col) in filled_cells:  # if we haven't filled the cell, good news! put a miner there
+                row_2_miner_cols.append(candidate_col)
+                self.board[2][candidate_col] = Cell.miner
+                filled_cells.append((2, candidate_col))
+
+        """PLACE SCOUTS"""
+        # all 8 will go on row 3 (outermost row)
+        col_indices: list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        row_3_scout_locations = []
+        while len(row_3_scout_locations) < 8:
+            candidate_col = col_indices.pop(randint(0, len(col_indices) - 1))  # pick random col
+            if not (3, candidate_col) in filled_cells:  # if we haven't filled the cell, good news! put a scout there
+                row_3_scout_locations.append(candidate_col)
+                self.board[3][candidate_col] = Cell.scout
+                filled_cells.append((3, candidate_col))
+
+        """PLACE MARSHAL"""
+        # marshal will go on row 0 or 1 (at random)
+        marshal_row = randint(0, 1)
+        col_indices: list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        found_marshal_location = False
+        while not found_marshal_location:
+            candidate_col = col_indices.pop()
+            if (marshal_row, candidate_col) not in filled_cells:
+                found_marshal_location = True
+                self.board[marshal_row][candidate_col] = Cell.marshal
+                filled_cells.append((marshal_row, candidate_col))
+
+        # at this point, we have placed flag, spy, bombs, scouts, miners, and marshal. At this point, it will be easier
+        # to pop off a list of unfilled cells and put pieces there instead having pieces and then finding locations
+        # will do this by using some "fun" set stuff.
+        all_computer_cells: list[tuple[int, int]] = []
+        for row in range(0, 4):
+            for col in range(0, 10):
+                all_computer_cells.append((row, col))
+        # make a list of the cells that the computer controls at the start that doesn't already have a piece
+        unfilled_cells: list[tuple[int, int]] = list(set(all_computer_cells) - set(filled_cells))
+
+        def fill_random_cell(remaining_cells: list[tuple[int, int]], cell_type: Cell) -> tuple[int, int]:
+            """
+            Helper function to allow us to fill a random unfilled cell with a passed-in cell type
+            """
+            to_fill_row, to_fill_col = remaining_cells.pop(randint(0, len(remaining_cells) - 1))
+            self.board[to_fill_row][to_fill_col] = cell_type
+            return to_fill_row, to_fill_col
+
+        """PLACE sergeants, lieutenants, captain"""
+        # will choose 4 random locations remaining for sergeant, lieutenant, captains using helper function
+        for i in range(4):
+            filled_cells.append(fill_random_cell(unfilled_cells, Cell.sergeant))
+            filled_cells.append(fill_random_cell(unfilled_cells, Cell.lieutenant))
+            filled_cells.append(fill_random_cell(unfilled_cells, Cell.captain))
+
+        """PLACE 3 MAJORS (RANDOMLY)"""
+        for i in range(3):
+            filled_cells.append(fill_random_cell(unfilled_cells, Cell.major))
+
+        """PLACE 2 Colonels (RANDOMLY)"""
+        for i in range(2):
+            filled_cells.append(fill_random_cell(unfilled_cells, Cell.colonel))
+
+        """PLACE GENERAL IN LAST SPOT"""
+        gen_row, gen_col = unfilled_cells.pop()
+        self.board[gen_row][gen_col] = Cell.general
+        filled_cells.append((gen_row, gen_col))
 
 
 
@@ -428,7 +547,4 @@ def get_neighbors(row: int, col: int) -> list[tuple[int, int]]:
     # return result
     #print('returning from get neighbors:', neighbors)
     return neighbors
-
-
-
 
