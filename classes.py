@@ -93,17 +93,13 @@ class Game:
         return valid_moves
 
     def get_valid_moves_scout(self, row: int, col: int) -> list[tuple[int, int]]:
-        # all_moves: list[tuple[int, int]] = []
-        #
-        # starting_position = (row, col)
-        # for x in range (0, 9):
-        #     if x != row:
-        #         move = (row, x)
-        #         all_moves.append(move)
-        #     elif x != col:
-        #         move = (x, col)
-        #         all_moves.append(move)
-
+        '''
+        This method is used to get all the potential moves for scout that are not available for other
+        piece types
+        :param row
+        :param col
+        :return: a list of potential moves
+        '''
         valid_moves: list[tuple[int, int]] = []
 
         # get moves below current move
@@ -145,8 +141,6 @@ class Game:
                 valid_moves.append(move)
             else:
                 current_col = 9
-
-        print(valid_moves)
 
         return valid_moves
 
