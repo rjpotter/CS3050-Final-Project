@@ -32,7 +32,6 @@ def run_game():
             valid_move_made = False
             while not valid_move_made and game.game_state == Game_State.not_finished:
                 valid_move_made = get_human_move_CLI(game)
-            turn_tracker += 1
         # if turn tracker is even, computer is moving
         else:
             game.computer_player_move()
