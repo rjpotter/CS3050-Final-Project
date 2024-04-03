@@ -211,11 +211,29 @@ class Game:
             # update the troop location lists
             self.human_player.troop_locations.remove(start_location)
 
-        # Update the last move location
+        # Update the last move location 
         self.last_human_move = end_location
 
         return True
 
+    # Add this method to the Game class.
+    def prompt_human_move(self):
+        move_is_valid = False
+        while not move_is_valid:
+            start_row = int(input("Enter the starting row: "))
+            start_col = int(input("Enter the starting column: "))
+            if not self.is_human_piece(start_row, start_col):
+                print("Invalid piece. Please select a piece that belongs to you.")
+                continue
+            end_row = int(input("Enter the ending row: "))
+            end_col = int(input("Enter the ending column: "))
+            move_is_valid = self.human_player_move((start_row, start_col), (end_row, end_col))
+            if not move_is_valid:
+                print("Invalid move. Please try again.")
+
+    # Add this helper method to the Game class to check if the selected piece belongs to the human player.
+    def is_human_piece(self, row: int, col: int) -> bool:
+        return (row, col) in self.human_player.troop_locations
 
     def computer_player_move(self) -> None:
         """

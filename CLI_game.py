@@ -25,23 +25,23 @@ def run_game():
     game = Game()
     turn_tracker = 1
     display_board(game, turn_tracker)
-    # use the Game_State enum to determine if another turn should be played
+
     while game.game_state == Game_State.not_finished:
         # if turn tracker is odd, human is moving
         if turn_tracker % 2 == 1:
-            player_move = get_player_move()
-            start_row = player_move[0][0]
-            start_col = player_move[0][1]
-            end_row = player_move[1][0]
-            end_col = player_move[1][1]
-            game.human_player_move((start_row, start_col), (end_row, end_col))
-        # if turn tracker is even computer is moving
+            player_move = get_player_move(game)
+            start_row, start_col = player_move[0]
+            end_row, end_col = player_move[1]
+            if game.human_player_move((start_row, start_col), (end_row, end_col)):
+                turn_tracker += 1
+            else:
+                print("Invalid move. Your move must be to a valid location where you have a piece and to a location that is a valid move for that piece. Please try again.")
+        # if turn tracker is even, computer is moving
         else:
             game.computer_player_move()
+            turn_tracker += 1
 
-        turn_tracker += 1
         display_board(game, turn_tracker)
-
 
 
     '''
@@ -54,23 +54,35 @@ def run_game():
     game.human_player_move((4,4), (3,4))
     display_board(game)
     '''
-def get_player_move() -> tuple[tuple[int, int], tuple[int, int]]:
-    # take user row and columns as inputs and cast them as ints
-    print("Input the location of the piece you want to move:")
-    start_row = input("Row:")
-    start_row = int(start_row)
-    start_col = input("Column:")
-    start_col = int(start_col)
-    start_tuple = (start_row, start_col)
-    print("Enter where you want to move the piece:")
-    end_row = input("Row:")
-    end_row = int(end_row)
-    end_col = input("Column:")
-    end_col = int(end_col)
-    end_tuple = (end_row, end_col)
-    # return a tuple of tuples of ints containing start and end location data
-    player_move = (start_tuple, end_tuple)
-    return player_move
+def get_player_move(game: Game) -> tuple[tuple[int, int], tuple[int, int]]:
+    while True:
+        print("Input the location of the piece you want to move:")
+        try:
+            start_row = int(input("Row:"))
+            start_col = int(input("Column:"))
+            start_tuple = (start_row, start_col)
+
+            if not game.is_human_piece(start_row, start_col):
+                print("Invalid piece. Please select a piece that belongs to you.")
+                continue
+
+            valid_moves = game.get_valid_moves(start_row, start_col)
+            if not valid_moves:
+                print("No valid moves for this piece. Please select another piece.")
+                continue
+
+            print("Enter where you want to move the piece:")
+            end_row = int(input("Row:"))
+            end_col = int(input("Column:"))
+            end_tuple = (end_row, end_col)
+
+            if end_tuple in valid_moves:
+                return start_tuple, end_tuple
+            else:
+                print("Invalid move. Please try again.")
+
+        except ValueError:
+            print("Invalid input. Please enter numeric values for rows and columns.")
 
 
 
