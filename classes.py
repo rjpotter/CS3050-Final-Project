@@ -149,6 +149,29 @@ class Game:
         self.game_state = condition
         print('game is over.\n', winner, 'won the game.')
 
+    def detect_human_stuck(self) -> bool:
+        """
+        detect_human_stuck checks to see if the human player is unable to make a move, which would mean
+        the human lost. If this is the case, it returns True, false otw
+        :return: boolean, True if the human is stuck, false otw
+        """
+        # check to see if the human has lost (isn't able to make a move)
+        human_troop_locations_copy = self.human_player.troop_locations.copy()
+        valid_moves: list[tuple[int, int]] = []
+        while len(valid_moves) == 0 and len(human_troop_locations_copy) > 0:
+            randint_upper_bound: int = len(human_troop_locations_copy) - 1
+            # print('upper bound: ', randint_upper_bound)
+            troop_to_move_row, troop_to_move_col = human_troop_locations_copy.pop(randint(0, randint_upper_bound))
+            valid_moves.extend(
+                self.get_valid_moves(troop_to_move_row, troop_to_move_col))  # add the valid moves for the troop
+
+        # if we couldn't find a valid move, then the human won
+        if len(valid_moves) == 0:
+            self.game_end('Computer', Game_State.no_moves)
+            return True
+        return False
+
+
     def human_player_move(self, start_location: tuple[int, int], end_location: tuple[int, int]) -> bool:
         """
         human_player_move intakes a start and end location for a human piece and carries out the move
@@ -173,30 +196,6 @@ class Game:
         # if we couldn't find a valid move, then the human won
         if len(valid_moves) == 0:
             self.game_end('Computer', Game_State.no_moves)
-
-    def detect_human_stuck(self) -> bool:
-        """
-        detect_human_stuck checks to see if the human player is unable to make a move, which would mean
-        the human lost. If this is the case, it returns True, false otw
-        :return: boolean, True if the human is stuck, false otw
-        """
-        # check to see if the human has lost (isn't able to make a move)
-        human_troop_locations_copy = self.human_player.troop_locations.copy()
-        valid_moves: list[tuple[int, int]] = []
-        while len(valid_moves) == 0 and len(human_troop_locations_copy) > 0:
-            randint_upper_bound: int = len(human_troop_locations_copy) - 1
-            # print('upper bound: ', randint_upper_bound)
-            troop_to_move_row, troop_to_move_col = human_troop_locations_copy.pop(randint(0, randint_upper_bound))
-            valid_moves.extend(
-                self.get_valid_moves(troop_to_move_row, troop_to_move_col))  # add the valid moves for the troop
-
-        # if we couldn't find a valid move, then the human won
-        if len(valid_moves) == 0:
-            self.game_end('Computer', Game_State.no_moves)
-            return True
-        return False
-
-
 
         if end_location not in self.get_valid_moves(start_location[0], start_location[1]):
             return False
