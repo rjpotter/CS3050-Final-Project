@@ -273,28 +273,24 @@ class Game:
         valid_moves: list[tuple[int, int]] = []
         while len(valid_moves) == 0 and len(comp_troop_locations_copy) > 0:
             randint_upper_bound: int = len(comp_troop_locations_copy) - 1
-            #print('upper bound: ', randint_upper_bound)
             troop_to_move_row, troop_to_move_col = comp_troop_locations_copy.pop(randint(0, randint_upper_bound))
-            valid_moves.extend(self.get_valid_moves(troop_to_move_row, troop_to_move_col))  # add the valid moves for the troop
-        #print('troop to move row: ', troop_to_move_row, "troop to move col: ", troop_to_move_col)
-        #print('valid moves: ', valid_moves)
+            valid_moves.extend(self.get_valid_moves(troop_to_move_row, troop_to_move_col))
 
-        # if we couldn't find a valid move, then the human won
         if len(valid_moves) == 0:
             self.game_end('Human', Game_State.no_moves)
         else:
-            # have potentially many moves in valid_moves, pick a random one
             selected_move: tuple[int, int] = valid_moves.pop(randint(0, len(valid_moves) - 1))
-            #print('selected move:', selected_move)
-            selected_troop_location = (troop_to_move_row, troop_to_move_col)  # to get here must have row and col
+            selected_troop_location = (troop_to_move_row, troop_to_move_col)
 
-            # now must carry out the move. First step is to do the comparison between the troops
-            surviving_locations: list[tuple[int, int]] = compare_units(self.board, selected_troop_location, selected_move)
+            # Carry out the move. First step is to do the comparison between the troops.
+            surviving_locations: list[tuple[int, int]] = compare_units(self.board, selected_troop_location,
+                                                                       selected_move)
 
-
-            # check to see if the computer captured the flag, if so, end game
-            if self.board[surviving_locations[0][0]][surviving_locations[0][1]] == Cell.flag:
+            # Check if the computer captured the flag, and if so, end the game.
+            # First, check if surviving_locations is not empty to avoid the error.
+            if surviving_locations and self.board[surviving_locations[0][0]][surviving_locations[0][1]] == Cell.flag:
                 self.game_end("Computer", Game_State.capture_flag)
+                return  # Exit the method if the game has ended.
 
             # if computer troop survives, do things
             if selected_troop_location in surviving_locations:
@@ -494,7 +490,6 @@ class Game:
         gen_row, gen_col = unfilled_cells.pop()
         self.board[gen_row][gen_col] = Cell.general
         filled_cells.append((gen_row, gen_col))
-
 
 
 class Human_Player:

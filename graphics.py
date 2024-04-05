@@ -4,8 +4,10 @@ Title: Stratego: Graphics
 Course: CS 3050 - Software Engineering
 Date: March 6, 2024
 """
+import time
 
 import arcade
+from arcade import schedule
 from classes import Game, Cell, Game_State
 
 # Initialize screen dimensions and game title
@@ -47,6 +49,12 @@ class MyGame(arcade.Window):
         # Sprites placeholders
         self.blue_sprites = arcade.SpriteList()
         self.red_sprites = arcade.SpriteList()
+        # Initialize turn tracker
+        self.turn_tracker = 1
+        self.play_again_button_x = TOTAL_SCREEN_WIDTH // 2
+        self.play_again_button_y = TOTAL_SCREEN_HEIGHT // 2 - 75
+        self.play_again_button_width = 200
+        self.play_again_button_height = 50
 
     """
     def setup(self):
@@ -134,11 +142,17 @@ class MyGame(arcade.Window):
         arcade.draw_xywh_rectangle_filled(SCREEN_WIDTH + SIDE_BAR_WIDTH,
                                           (TOTAL_SCREEN_HEIGHT / 2), SIDE_BAR_WIDTH, (TOTAL_SCREEN_HEIGHT / 2), red_color)
 
-        """
-        #Side Bars
-        blue_color = arcade.color.BLUE
-        arcade.draw_xywh_rectangle_filled(0, 0, SIDE_BAR_WIDTH, SCREEN_HEIGHT, blue_color)
-        """
+        # Displaying the turn tracker in the center of the Red Menu Bar
+        current_player = "Player" if self.turn_tracker % 2 == 1 else "Computer"
+        turn_text = f"Turn: {((self.turn_tracker + 1) // 2)} {current_player}"
+
+        # Calculate the position for displaying the turn tracker text
+        text_x = TOTAL_SCREEN_WIDTH / 2
+        text_y = TOTAL_SCREEN_HEIGHT - MENU_BAR_HEIGHT / 2
+
+        # Draw the turn tracker text
+        arcade.draw_text(turn_text, text_x, text_y, arcade.color.WHITE, 14,
+                         anchor_x="center", anchor_y="center")
 
         # Highlighting the selected square
         if self.highlighted_square:
@@ -149,7 +163,19 @@ class MyGame(arcade.Window):
         # Drawing pieces on the board
         self.draw_board_pieces()
 
+        # Draw the game over screen if the game state is not 'not_finished'
+        if self.game.game_state != Game_State.not_finished:
+            self.draw_game_over_screen()
+
     def on_mouse_press(self, x, y, button, modifiers):
+        # Check if the game is over and the "Play Again" button was clicked
+        if (self.game.game_state != Game_State.not_finished and
+                x > self.play_again_button_x - self.play_again_button_width // 2 and
+                x < self.play_again_button_x + self.play_again_button_width // 2 and
+                y > self.play_again_button_y - self.play_again_button_height // 2 and
+                y < self.play_again_button_y + self.play_again_button_height // 2):
+            self.reset_game()
+            return
         # Handle piece selection and movement
         if button == arcade.MOUSE_BUTTON_LEFT:
             col = (x - SIDE_BAR_WIDTH) // SQUARE_SIZE
@@ -161,22 +187,61 @@ class MyGame(arcade.Window):
                     self.highlight_color = arcade.color.WHITE
                     self.highlighted_square = None
                 else:
-                    self.highlight_square((row,col), arcade.color.RED, 0.5)
+                    self.highlight_square((row, col), arcade.color.RED, 0.5)
 
             elif self.selected_piece:
                 start_row, start_col = self.selected_piece
                 valid_move = self.game.human_player_move((start_row, start_col), (row, col))
                 if valid_move:
+                    # Move was valid, deselect the piece, and trigger computer move
                     self.selected_piece = None
                     self.highlight_color = arcade.color.WHITE
                     self.highlighted_square = None
+                    self.turn_tracker += 1  # Advance turn after human move
                     self.game.computer_player_move()
+                    self.turn_tracker += 1  # Advance turn after computer move
                 else:
+                    # Invalid move, highlight in red
                     self.highlight_square(start_row, start_col, arcade.color.RED, 0.5)
             else:
                 if (row, col) in self.game.human_player.troop_locations:
+                    # New piece selected
                     self.selected_piece = (row, col)
                     self.highlight_square(row, col, arcade.color.YELLOW)
+
+    def advance_turn(self):
+        """Advances to the next turn."""
+        self.turn_tracker += 1
+
+
+    def draw_game_over_screen(self):
+        # Semi-transparent gray overlay
+        game_over_overlay_color = (128, 128, 128, 128)  # RGBA for semi-transparent gray
+        arcade.draw_xywh_rectangle_filled(0, 0, TOTAL_SCREEN_WIDTH, TOTAL_SCREEN_HEIGHT, game_over_overlay_color)
+
+        # Determine win or loss
+        if self.game.game_state == Game_State.capture_flag and self.game.last_human_move != (-1, -1):
+            message = "YOU WIN!"
+        else:
+            message = "YOU LOST"
+
+        # Display the message
+        arcade.draw_text(message, TOTAL_SCREEN_WIDTH // 2, TOTAL_SCREEN_HEIGHT // 2,
+                         arcade.color.WHITE, font_size=50, anchor_x="center", anchor_y="center")
+
+        # Button dimensions and position
+        arcade.draw_rectangle_filled(self.play_again_button_x, self.play_again_button_y,
+                                     self.play_again_button_width, self.play_again_button_height,
+                                     arcade.color.GRAY)
+        arcade.draw_text("Play Again", self.play_again_button_x, self.play_again_button_y,
+                         arcade.color.WHITE, font_size=20, anchor_x="center", anchor_y="center")
+
+    def reset_game(self):
+        # Reinitialize the game logic
+        self.game = Game()
+        # Reset other necessary variables
+        self.selected_piece = None
+        self.turn_tracker = 1
 
 
 def main():
@@ -184,6 +249,7 @@ def main():
     my_game_window = MyGame(TOTAL_SCREEN_WIDTH, TOTAL_SCREEN_HEIGHT, SCREEN_TITLE, game)
     #my_game_window.setup()
     arcade.run()
+
 
 if __name__ == "__main__":
     main()
