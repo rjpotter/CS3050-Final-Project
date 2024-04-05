@@ -17,6 +17,49 @@ The game Stratego. Stratego is a classic board game of battlefield strategy that
 - **Winning**: The game ends when one player captures the opponent's flag or the opponent cannot make any legal moves.
 - **Prohibited Moves**: Pieces cannot move back and forth between the same two squares repeatedly (two-square rule) to avoid indefinite continuation of the game.
 
+## Sprint 3 Goals
+## Date
+4/3/2024
+### Task Priorities and Details
+
+### 1. Semi-random Human Board Setup
+- **Priority**: Nice to Have
+- **Difficulty**: Hard
+- **Notes**: Implement a method for players to place their pieces on the board in a semi-random arrangement, potentially using strategies similar to those developed for the computer player setup.
+- **Status**: Pending
+
+### 2. Scout Movement Function
+- **Priority**: Must Have
+- **Difficulty**: Hard
+- **Notes**: Develop functionality allowing Scouts to move any number of squares vertically or horizontally, not being limited to the one-square movement of other pieces, similar to a Rook in chess.
+- **Status**: Pending
+
+### 3. Semi-random Computer Board Setup
+- **Priority**: Nice to Have
+- **Difficulty**: Hard
+- **Notes**: Enhance the computer player's board setup to include semi-random placement of pieces to vary gameplay and increase difficulty.
+- **Status**: In Progress
+
+### 4. GUI Interface for Making Moves
+- **Priority**: Must Have
+- **Difficulty**: Hard
+- **Notes**: Create a graphical user interface that allows players to make moves by selecting a piece and then selecting the target square.
+- **Status**: Completed
+
+### 5. Display Board in GUI
+- **Priority**: Must Have
+- **Difficulty**: Hard
+- **Notes**: The current state of the game should be visually represented in the GUI, showing piece positions in a manner that is easy to understand.
+- **Status**: Completed
+
+### 6. Move Validation
+- **Priority**: Must Have
+- **Difficulty**: Medium
+- **Notes**: Implement checks to validate player moves, ensuring they adhere to game rules, and prompt the player to make another move if the initial move is invalid.
+- **Status**: In Progress
+
+## -----------------------------------------------
+
 ## Sprint 2 Goals
 ## Date
 3/25/2024

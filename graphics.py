@@ -117,10 +117,14 @@ class MyGame(arcade.Window):
             col = x // SQUARE_SIZE
             row = 9 - (y // SQUARE_SIZE)
             if self.selected_piece == (row, col):
-                # Deselect the piece if it's already selected
-                self.selected_piece = None
-                self.highlight_color = arcade.color.WHITE
-                self.highlighted_square = None
+                if (row, col) in self.game.human_player.troop_locations:
+                    # Deselect the piece if it's already selected
+                    self.selected_piece = None
+                    self.highlight_color = arcade.color.WHITE
+                    self.highlighted_square = None
+                else:
+                    self.highlight_square((row,col), arcade.color.RED, 0.5)
+
             elif self.selected_piece:
                 start_row, start_col = self.selected_piece
                 valid_move = self.game.human_player_move((start_row, start_col), (row, col))
@@ -132,8 +136,9 @@ class MyGame(arcade.Window):
                 else:
                     self.highlight_square(start_row, start_col, arcade.color.RED, 0.5)
             else:
-                self.selected_piece = (row, col)
-                self.highlight_square(row, col, arcade.color.YELLOW)
+                if (row, col) in self.game.human_player.troop_locations:
+                    self.selected_piece = (row, col)
+                    self.highlight_square(row, col, arcade.color.YELLOW)
 
 
 def main():
