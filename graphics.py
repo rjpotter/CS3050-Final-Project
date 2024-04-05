@@ -9,7 +9,11 @@ import arcade
 from classes import Game, Cell, Game_State
 
 # Initialize screen dimensions and game title
-SCREEN_WIDTH = 640
+MENU_BAR_HEIGHT = 50
+SIDE_BAR_WIDTH = 50
+TOTAL_SCREEN_WIDTH = 640 + (SIDE_BAR_WIDTH * 2)
+TOTAL_SCREEN_HEIGHT = 640 + (MENU_BAR_HEIGHT * 2)
+SCREEN_WIDTH = 640 #+ SIDE_BAR_WIDTH
 SCREEN_HEIGHT = 640
 SCREEN_TITLE = "Stratego"
 SQUARE_SIZE = 64  # Each square size on the board
@@ -44,6 +48,7 @@ class MyGame(arcade.Window):
         self.blue_sprites = arcade.SpriteList()
         self.red_sprites = arcade.SpriteList()
 
+    """
     def setup(self):
         # Calculate texture coordinates for slicing
         texture_map_cords = [
@@ -53,6 +58,7 @@ class MyGame(arcade.Window):
         # Loading textures for pieces
         blue_textures = arcade.load_textures("img/blue_pieces.png", texture_map_cords, mirrored=False, flipped=False)
         red_textures = arcade.load_textures("img/red_pieces.png", texture_map_cords, mirrored=False, flipped=False)
+    """
 
     def draw_board_pieces(self):
         # Drawing pieces on the board based on current game state
@@ -60,8 +66,8 @@ class MyGame(arcade.Window):
             for col in range(10):
                 cell = self.game.board[row][col]
                 display_text = DISPLAY_DICT[cell]
-                x = col * SQUARE_SIZE + SQUARE_SIZE // 2
-                y = SCREEN_HEIGHT - (row * SQUARE_SIZE + SQUARE_SIZE // 2)
+                x = (col * SQUARE_SIZE + SQUARE_SIZE // 2) + SIDE_BAR_WIDTH
+                y = (SCREEN_HEIGHT - (row * SQUARE_SIZE + SQUARE_SIZE // 2)) + MENU_BAR_HEIGHT
                 text_color = arcade.color.BLACK  # Default color
                 if (row, col) == self.game.last_human_move:
                     text_color = arcade.color.GREEN
@@ -85,28 +91,60 @@ class MyGame(arcade.Window):
 
     def on_draw(self):
         arcade.start_render()  # Prepare for drawing
+
         # Drawing game board background
         board_color = arcade.color.DARK_OLIVE_GREEN
-        arcade.draw_xywh_rectangle_filled(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, board_color)
+        arcade.draw_xywh_rectangle_filled(0, 0, TOTAL_SCREEN_WIDTH, TOTAL_SCREEN_HEIGHT, board_color)
+
         # Outlining board squares and drawing impassable terrain
         outline_color = arcade.color.BLACK
         for row in range(10):
             for col in range(10):
-                x = (col * SQUARE_SIZE) + SQUARE_SIZE // 2
-                y = (row * SQUARE_SIZE) + SQUARE_SIZE // 2
+                x = (col * SQUARE_SIZE + SQUARE_SIZE // 2) + SIDE_BAR_WIDTH
+                y = ((row * SQUARE_SIZE) + SQUARE_SIZE // 2) + MENU_BAR_HEIGHT
                 arcade.draw_rectangle_outline(x, y, SQUARE_SIZE, SQUARE_SIZE, outline_color, 2)
+
         # Lake positions
-        lake_color = arcade.color.BLUE
+        lake_color = arcade.color.AQUA
         lakes_positions = [(2, 4), (2, 5), (3, 4), (3, 5), (6, 4), (6, 5), (7, 4), (7, 5)]
         for pos in lakes_positions:
-            x = pos[0] * SQUARE_SIZE
-            y = pos[1] * SQUARE_SIZE
+            x = (pos[0] * SQUARE_SIZE) + SIDE_BAR_WIDTH
+            y = (pos[1] * SQUARE_SIZE) + MENU_BAR_HEIGHT
             arcade.draw_xywh_rectangle_filled(x, y, SQUARE_SIZE, SQUARE_SIZE, lake_color)
+
+        # Red Menu Bar
+        red_menu_color = arcade.color.RED
+        arcade.draw_xywh_rectangle_filled(0, (TOTAL_SCREEN_HEIGHT - MENU_BAR_HEIGHT),
+                                          TOTAL_SCREEN_WIDTH, MENU_BAR_HEIGHT, red_menu_color)
+
+        # Blue Menu Bar
+        blue_menu_color = arcade.color.BLUE
+        arcade.draw_xywh_rectangle_filled(0, 0, TOTAL_SCREEN_WIDTH, MENU_BAR_HEIGHT, blue_menu_color)
+
+        # Blue Team Side Bar
+        blue_color = arcade.color.BLUE
+        arcade.draw_xywh_rectangle_filled(0, 0, SIDE_BAR_WIDTH, (TOTAL_SCREEN_HEIGHT / 2), blue_color)
+        arcade.draw_xywh_rectangle_filled(SCREEN_WIDTH + SIDE_BAR_WIDTH,
+                                          0, SIDE_BAR_WIDTH, (TOTAL_SCREEN_HEIGHT / 2), blue_color)
+
+        # Red Team Side Bar
+        red_color = arcade.color.RED
+        arcade.draw_xywh_rectangle_filled(0, (TOTAL_SCREEN_HEIGHT / 2),
+                                          SIDE_BAR_WIDTH, (TOTAL_SCREEN_HEIGHT / 2), red_color)
+        arcade.draw_xywh_rectangle_filled(SCREEN_WIDTH + SIDE_BAR_WIDTH,
+                                          (TOTAL_SCREEN_HEIGHT / 2), SIDE_BAR_WIDTH, (TOTAL_SCREEN_HEIGHT / 2), red_color)
+
+        """
+        #Side Bars
+        blue_color = arcade.color.BLUE
+        arcade.draw_xywh_rectangle_filled(0, 0, SIDE_BAR_WIDTH, SCREEN_HEIGHT, blue_color)
+        """
+
         # Highlighting the selected square
         if self.highlighted_square:
             row, col = self.highlighted_square
-            x = (col * SQUARE_SIZE) + (SQUARE_SIZE // 2)
-            y = SCREEN_HEIGHT - (row * SQUARE_SIZE + (SQUARE_SIZE // 2))
+            x = (col * SQUARE_SIZE + SQUARE_SIZE // 2) + SIDE_BAR_WIDTH
+            y = (SCREEN_HEIGHT - (row * SQUARE_SIZE + (SQUARE_SIZE // 2))) + MENU_BAR_HEIGHT
             arcade.draw_rectangle_filled(x, y, SQUARE_SIZE, SQUARE_SIZE, self.highlight_color)
         # Drawing pieces on the board
         self.draw_board_pieces()
@@ -114,8 +152,8 @@ class MyGame(arcade.Window):
     def on_mouse_press(self, x, y, button, modifiers):
         # Handle piece selection and movement
         if button == arcade.MOUSE_BUTTON_LEFT:
-            col = x // SQUARE_SIZE
-            row = 9 - (y // SQUARE_SIZE)
+            col = (x - SIDE_BAR_WIDTH) // SQUARE_SIZE
+            row = 9 - ((y - MENU_BAR_HEIGHT) // SQUARE_SIZE)
             if self.selected_piece == (row, col):
                 if (row, col) in self.game.human_player.troop_locations:
                     # Deselect the piece if it's already selected
@@ -143,8 +181,8 @@ class MyGame(arcade.Window):
 
 def main():
     game = Game()  # Initialize game logic
-    my_game_window = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE, game)
-    my_game_window.setup()
+    my_game_window = MyGame(TOTAL_SCREEN_WIDTH, TOTAL_SCREEN_HEIGHT, SCREEN_TITLE, game)
+    #my_game_window.setup()
     arcade.run()
 
 if __name__ == "__main__":
