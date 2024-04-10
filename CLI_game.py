@@ -39,6 +39,8 @@ def run_game():
         turn_tracker += 1
         display_board(game, turn_tracker)
 
+        #display_computer_view(game)
+
 
 
     '''
@@ -134,6 +136,36 @@ def display_board(game: Game, turn_tracker: int):
 
         print(to_print)
         print('-------------------------------------------')
+
+def display_computer_view(game:Game):
+    print('COMPUTER VIEW:', game.computer_view)
+    print('  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9')
+    print('-------------------------------------------')
+    to_print = ''
+    # print body of board
+    for row in range(0, 10):
+        row_to_print = str(row) + ' |' # start row
+        for col in range(10):
+            cell_display = ''
+            if (row, col) in game.human_player.troop_locations:
+                cell_display += "H"
+            elif (row, col) in game.computer_player.troop_locations:
+                cell_display += "C"
+            else:
+                cell_display += " "
+
+            if (row, col) in game.computer_view or (row, col) in game.computer_player.troop_locations:
+                cell_display += DISPLAY_DICT[game.board[row][col]]
+            else:
+                cell_display += DISPLAY_DICT[Cell.empty]
+
+            # Print move with color (for last piece moved)
+            row_to_print += (cell_display + "|")
+        row_to_print += "\n"
+        to_print += row_to_print
+    print(to_print)
+    print('--------------------------------')
+    print('END COMPUTER VIEW')
 
 
 run_game()

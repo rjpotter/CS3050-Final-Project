@@ -2,6 +2,7 @@ from classes import Game
 from classes import Cell
 from classes import Game_State
 
+
 DISPLAY_DICT = {
     Cell.spy: ' 1',
     Cell.scout: ' 2',
@@ -21,30 +22,54 @@ DISPLAY_DICT = {
 }
 
 
-def run_game():
+def test_end_game(game_end_string):
     # set up game
     game = Game()
     turn_tracker = 1
+    # set up different scenarios based on the desired test
     display_board(game, turn_tracker)
-    # force board into end state
-    game.board[4][0] = Cell.bomb
-    game.board[4][1] = Cell.bomb
-    game.board[4][4] = Cell.bomb
-    game.board[4][5] = Cell.bomb
-    game.board[4][8] = Cell.bomb
-    game.board[4][9] = Cell.bomb
-    display_board(game, turn_tracker)
+    if game_end_string == "computer stuck":
+        # force board into end state
+        game.board[4][0] = Cell.bomb
+        game.board[4][1] = Cell.bomb
+        game.board[4][4] = Cell.bomb
+        game.board[4][5] = Cell.bomb
+        game.board[4][8] = Cell.bomb
+        game.board[4][9] = Cell.bomb
+        display_board(game, turn_tracker)
+    elif game_end_string == "human stuck":
+        # force board into end state
+        game.board[5][0] = Cell.bomb
+        game.board[5][1] = Cell.bomb
+        game.board[5][4] = Cell.bomb
+        game.board[5][5] = Cell.bomb
+        game.board[5][8] = Cell.bomb
+        game.board[5][9] = Cell.bomb
+        new_locations = []
+        for col in range(0,10):
+            new_locations.append((5, col))
+        print('new locations:', new_locations)
+        game.human_player.troop_locations.extend(new_locations)
+        print(game.human_player.troop_locations)
+        display_board(game, turn_tracker)
+
 
     # use the Game_State enum to determine if another turn should be played
     while game.game_state == Game_State.not_finished:
         # if turn tracker is odd, human is moving
         if turn_tracker % 2 == 1:
-            player_move = get_player_move()
-            start_row = player_move[0][0]
-            start_col = player_move[0][1]
-            end_row = player_move[1][0]
-            end_col = player_move[1][1]
-            game.human_player_move((start_row, start_col), (end_row, end_col))
+            print("is human stuck?", game.detect_human_stuck())
+
+            if game.game_state != Game_State.not_finished:
+                print('here')
+                break
+            else:
+                player_move = get_player_move()
+                start_row = player_move[0][0]
+                start_col = player_move[0][1]
+                end_row = player_move[1][0]
+                end_col = player_move[1][1]
+                game.human_player_move((start_row, start_col), (end_row, end_col))
         # if turn tracker is even computer is moving
         else:
             game.computer_player_move()
@@ -125,4 +150,4 @@ def display_board(game: Game, turn_tracker: int):
         print('-------------------------------------------')
 
 
-run_game()
+test_end_game("human stuck")

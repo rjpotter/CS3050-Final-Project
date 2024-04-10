@@ -46,6 +46,7 @@ class Game:
         self.board = []
         self.intialize_board()
         self.game_state = Game_State.not_finished
+        self.computer_view: list[tuple[int, int]] = []
 
     def get_valid_moves(self, row: int, col: int) -> list[tuple[int, int]]:
         """
@@ -216,6 +217,9 @@ class Game:
             # update the board cells
             self.board[start_location[0]][start_location[1]] = Cell.empty
             self.board[end_location[0]][end_location[1]] = Cell.empty
+            # update computer view (remove human location if it was there) because the troop died
+            if start_location in self.computer_view:
+                self.computer_view.remove(start_location)
 
         if start_location in surviving_locations:  # human troop survived, act accordingly
             # update the board cells
@@ -224,8 +228,11 @@ class Game:
             # update the troop location lists
             self.human_player.troop_locations.remove(start_location)
             self.human_player.troop_locations.append(end_location)
-            if end_location in self.computer_player.troop_locations:
+            if end_location in self.computer_player.troop_locations:  # human killed computer troop. Computer now knows what killed its troop
                 self.computer_player.troop_locations.remove(end_location)
+                if start_location in self.computer_view:  # remove human start location from computer view
+                    self.computer_view.remove(start_location)
+                self.computer_view.append(end_location)  # computer knows the human troop at the end location
 
         if end_location in surviving_locations:  # computer troop survived, act accordingly
             # update the board cells
@@ -303,8 +310,22 @@ class Game:
                 # remove player troop from list of player troop locations
                 self.human_player.troop_locations.remove(selected_move)
 
-            if len(surviving_locations) == 0: # both troops died, will always update board for comp later
+                # if the computer knew what it was attacking and the attacked troop died, remove from comp view
+                if selected_move in self.computer_view:
+                    self.computer_view.remove(selected_move)
+
+            if len(surviving_locations) == 0:  # both troops died, will always update board for comp later
                 self.board[selected_move[0]][selected_move[1]] = Cell.empty
+
+                # if the computer knew what it was attacking and the attacked troop died, remove from comp view
+                if selected_move in self.computer_view:
+                    self.computer_view.remove(selected_move)
+
+            # case where comp dies, human survives
+            if selected_move in surviving_locations and selected_troop_location not in surviving_locations:
+                # computer piece will be removed later, do not need to change human piece
+                # will need to update the computer view to remember what it attacked into
+                self.computer_view.append(selected_move)
 
             # whatever happened, the moved troop will not be where it originally was (either died or was moved)
             self.computer_player.troop_locations.remove(selected_troop_location)  # update computer troop list
@@ -312,7 +333,7 @@ class Game:
 
             # Set end_loction as the selected move
             end_location = selected_move
-           # Update the last move location
+            # Update the last move location
             self.last_computer_move = end_location
 
 
