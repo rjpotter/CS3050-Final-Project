@@ -28,6 +28,7 @@ class Cell(Enum):
     bomb = 11
     flag = -1
     water = 12
+    unknown = -10
 
 
 class Game_State(Enum):
@@ -275,7 +276,127 @@ class Game:
         """
 
         comp_troop_locations_copy = self.computer_player.troop_locations.copy()
+        valid_moves: dict[tuple[int, int]: list[tuple[int, int]]] = {}
+        # will do this in a new way where all valid moves are found rather than just finding the one moveable piece and selecting a move for that troop
+        # iterate through computer troops
+        while len(comp_troop_locations_copy) > 0:
+            randint_upper_bound: int = len(comp_troop_locations_copy) - 1
+            # pick a random troop to try to move
+            troop_to_move_row, troop_to_move_col = comp_troop_locations_copy.pop(randint(0, randint_upper_bound))
+            current_troop_moves = self.get_valid_moves(troop_to_move_row, troop_to_move_col)
+            if len(current_troop_moves) > 0:
+                # some valid moves for the randomly selected troop
+                valid_moves[(troop_to_move_row, troop_to_move_col)] = current_troop_moves
 
+        # all potential moves for the computer are now in valid_moves. Detect if computer is stuck
+        if len(valid_moves.keys()) == 0:
+            self.game_end('Human', Game_State.no_moves)
+        else:  # computer is not stuck, proceed to classify moves
+            best_moves: list[tuple[tuple[int, int], tuple[int, int]]] = []  # first tuple is start loc. second is end loc.
+            good_moves: list[tuple[tuple[int, int], tuple[int, int]]] = []
+            medium_moves: list[tuple[tuple[int, int], tuple[int, int]]] = []
+            bad_moves: list[tuple[tuple[int, int], tuple[int, int]]] = []
+
+            # sort the moves. This is hard :(
+            for current_start_location in valid_moves.keys():  # iterate though the start location of movable pieces
+                current_end_locations: list[tuple[int, int]] = valid_moves[current_start_location]
+                # figure out what piece the computer is thinking about moving
+                current_start_type: Cell = self.board[current_start_location[0]][current_start_location[1]]
+                for current_end_location in current_end_locations:
+                    current_end_type: Cell = Cell.unknown
+                    # figure out if we know what is at the end location
+                    if current_end_location not in self.human_player.troop_locations:
+                        current_end_type = Cell.empty
+                    elif current_end_location in self.computer_view:  # human troop that computer knows
+                        current_end_type = self.board[current_end_location[0]][current_end_location[1]]
+                    else:
+                        current_end_type = Cell.unknown
+
+                    sorted = False
+
+                    # best moves are ones where the start location is a comp miner and the end location is a human bomb
+                    # or the start location is a comp spy and the end location is a human marhsall
+                    if current_start_type == Cell.miner and current_end_type == Cell.bomb:
+                        best_moves.append((current_start_location, current_end_location))
+                    elif current_start_type == Cell.spy and current_end_type == Cell.marshal:
+                        best_moves.append((current_start_location, current_end_location))
+                    # time to see if it's a good move
+                    elif current_end_type != Cell.unknown and current_end_type != Cell.empty and current_start_type.value > current_end_type.value:
+                        # comp knows the human troop it is attacking and knows it will win
+                        good_moves.append((current_start_location, current_end_location))
+                    # time to see if it's a bad move
+                    elif current_end_location != Cell.unknown and current_end_type.value > current_start_type.value:
+                        # computer knows that the move will result in a loss of its troop
+                        bad_moves.append((current_start_location, current_end_location))
+                    else:
+                        # computer isn't sure what will happen
+                        medium_moves.append((current_start_location, current_end_location))
+            """
+            print('best moves:', best_moves)
+            print('good moves:', good_moves)
+            print('medium moves:', medium_moves)
+            print('bad moves:', bad_moves)"""
+            # each move should now be sorted, now computer must pick one
+            if len(best_moves) != 0:  # there is at least one best move! Pick one of those at random
+                selected_troop_location, selected_move = best_moves.pop(randint(0, len(best_moves) - 1))
+            elif len(good_moves) != 0:  # no best moves, but we at least have a good move. Pick one of those
+                selected_troop_location, selected_move = good_moves.pop(randint(0, len(good_moves) - 1))
+            elif len(medium_moves) != 0:  # no best or good moves, but have at least one medium move. Pick one of those
+                selected_troop_location, selected_move = medium_moves.pop(randint(0, len(medium_moves) - 1))
+            else:  # only have bad moves somehow. Make one of those
+                selected_troop_location, selected_move = bad_moves.pop(randint(0, len(bad_moves) - 1))
+
+            # now use the old code to execute the move.
+            # Carry out the move. First step is to do the comparison between the troops.
+            surviving_locations: list[tuple[int, int]] = compare_units(self.board, selected_troop_location,
+                                                                       selected_move)
+
+            # Check if the computer captured the flag, and if so, end the game.
+            # First, check if surviving_locations is not empty to avoid the error.
+            if surviving_locations and self.board[surviving_locations[0][0]][
+                surviving_locations[0][1]] == Cell.flag:
+                self.game_end("Computer", Game_State.capture_flag)
+                return  # Exit the method if the game has ended.
+
+            # if computer troop survives, do things
+            if selected_troop_location in surviving_locations:
+                self.computer_player.troop_locations.append(selected_move)  # update computer troop locations
+                # update board by copying enum from old location to new location
+                self.board[selected_move[0]][selected_move[1]] = self.board[selected_troop_location[0]][
+                    selected_troop_location[1]]
+
+            # deal with player troop, if applicable
+            if selected_move not in surviving_locations and selected_move in self.human_player.troop_locations:
+                # remove player troop from list of player troop locations
+                self.human_player.troop_locations.remove(selected_move)
+
+                # if the computer knew what it was attacking and the attacked troop died, remove from comp view
+                if selected_move in self.computer_view:
+                    self.computer_view.remove(selected_move)
+
+            if len(surviving_locations) == 0:  # both troops died, will always update board for comp later
+                self.board[selected_move[0]][selected_move[1]] = Cell.empty
+
+                # if the computer knew what it was attacking and the attacked troop died, remove from comp view
+                if selected_move in self.computer_view:
+                    self.computer_view.remove(selected_move)
+
+            # case where comp dies, human survives
+            if selected_move in surviving_locations and selected_troop_location not in surviving_locations:
+                # computer piece will be removed later, do not need to change human piece
+                # will need to update the computer view to remember what it attacked into
+                self.computer_view.append(selected_move)
+
+            # whatever happened, the moved troop will not be where it originally was (either died or was moved)
+            self.computer_player.troop_locations.remove(selected_troop_location)  # update computer troop list
+            self.board[selected_troop_location[0]][
+                selected_troop_location[1]] = Cell.empty  # update board locations
+
+            # Set end_loction as the selected move
+            end_location = selected_move
+            # Update the last move location
+            self.last_computer_move = end_location
+        """
         found_move = False
         valid_moves: list[tuple[int, int]] = []
         while len(valid_moves) == 0 and len(comp_troop_locations_copy) > 0:
@@ -335,6 +456,7 @@ class Game:
             end_location = selected_move
             # Update the last move location
             self.last_computer_move = end_location
+            """
 
 
     def is_moveable_cell(self, row: int, col: int) -> bool:
