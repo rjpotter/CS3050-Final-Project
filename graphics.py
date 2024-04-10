@@ -17,8 +17,14 @@ PIECE_WIDTH = int(TEXTURE_IMAGE_WIDTH / 6)
 PIECE_HEIGHT = int(TEXTURE_IMAGE_HEIGHT / 2)
 
 # index map for pieces and their textures
-# Pieces:        | 10 | 9 | 8 | 7| 6| flag | 5 | 4 | 3 | 2 | 1  | bomb |
-# Texture index: | 0  | 1 | 2 | 3| 4| 5    | 6 | 7 | 8 | 9 | 10 | 11   |
+# Pieces:        | 10 | 9 | 8 | 7| 6| -1 (flag) | 5 | 4 | 3 | 2 | 1  | 11 (bomb) |
+# Texture index: | 0  | 1 | 2 | 3| 4| 5         | 6 | 7 | 8 | 9 | 10 | 11        |
+
+class Piece():
+    def __init__(self, value, color, texture: arcade.texture):
+        self.color = color
+        self.value = value
+        self.texture = texture
 
 
 class MyGame(arcade.Window):
@@ -35,6 +41,16 @@ class MyGame(arcade.Window):
         # and set them to None
         self.red_piece_textures = []
         self.blue_piece_textures = []
+
+        self.red_pieces = []
+        self.blue_pieces = []
+
+    def on_resize(self, width, height):
+        """ This method is automatically called when the window is resized. """
+
+        # Call the parent. Failing to do this will mess up the coordinates,
+        # and default to 0,0 at the center and the edges being -1 to 1.
+        super().on_resize(width, height)
 
     def setup(self):
         """
@@ -57,6 +73,16 @@ class MyGame(arcade.Window):
             4.5
         )
 
+        for ii in range (12):
+            if ii == 5:
+                self.red_pieces.append(Piece(-1, "red", self.red_piece_textures[ii]))
+            elif ii == 11:
+                self.red_pieces.append(Piece(ii, "red", self.red_piece_textures[ii]))
+            elif ii > 5:
+                self.red_pieces.append(Piece(10 - ii, "red", self.red_piece_textures[ii]))
+            else:
+                self.red_pieces.append(Piece(11 - ii, "red", self.red_piece_textures[ii]))
+
         self.red_piece_textures = arcade.load_textures(
             "img/red_pieces.png",
             texture_map_cords,
@@ -65,6 +91,16 @@ class MyGame(arcade.Window):
             "Simple",
             4.5
         )
+
+        for ii in range (12):
+            if ii == 5:
+                self.blue_pieces.append(Piece(-1, "blue", self.blue_piece_textures[ii]))
+            elif ii == 11:
+                self.blue_pieces.append(Piece(ii, "red", self.blue_piece_textures[ii]))
+            elif ii > 5:
+                self.blue_pieces.append(Piece(10 - ii, "red", self.blue_piece_textures[ii]))
+            else:
+                self.blue_pieces.append(Piece(11 - ii, "red", self.blue_piece_textures[ii]))
 
     def on_draw(self):
         """
@@ -130,7 +166,6 @@ class MyGame(arcade.Window):
 
 
 def main():
-    """ Main function """
     game = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
     game.setup()
     arcade.run()
