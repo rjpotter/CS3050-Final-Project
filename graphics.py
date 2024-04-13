@@ -23,6 +23,8 @@ HIGHLIGHT_OUTLINE = arcade.color.RED
 LAKE_COLOR = arcade.color.SILVER_LAKE_BLUE
 BACKGROUND = arcade.color.AUROMETALSAURUS
 BOARD = arcade.color.FERN_GREEN
+DEFAULT_LINE_HEIGHT = 45
+DEFAULT_FONT_SIZE = 20
 
 
 # index map for pieces and their textures
@@ -451,15 +453,115 @@ class MyGame(arcade.Window):
         # This command should happen before we start drawing. It will clear
         # the screen to the background color, and erase what we drew last frame.
         self.clear()
+        arcade.start_render()
 
         match self.game_state:
             case GameState.INTRO:
-                # TODO: Add title screen
+                # Set a themed background
+                arcade.set_background_color(arcade.color.DARK_GREEN)
+
+                # Centering calculations for text
+                start_x = (self.screen_width / 2)
+                start_y = self.screen_height - DEFAULT_LINE_HEIGHT * 3
+                anchor_x = 'center'
+
+                # Draw game title with a shadow effect for depth
+                arcade.draw_text("STRATEGO", start_x + 2, start_y - 2,
+                                 arcade.color.BLACK, 100,
+                                 font_name="Kenney Mini Square", anchor_x=anchor_x)
+                arcade.draw_text("STRATEGO", start_x, start_y,
+                                 arcade.color.BARN_RED, 100, bold=True,
+                                 font_name="Kenney Mini Square", anchor_x=anchor_x)
+
+                # Draw decorative elements
+                # Place flags at top corners
+                # Unicode character for a flag
+                flag_symbol = "⚑"
+
+                # Top left corner
+                arcade.draw_text(flag_symbol, self.screen_width * 0.1, self.screen_height * 0.8, arcade.color.RED, 100,
+                                 anchor_x="center")
+                # Top right corner
+                arcade.draw_text(flag_symbol, self.screen_width * 0.9, self.screen_height * 0.8, arcade.color.BLUE, 100,
+                                 anchor_x="center")
+
+                # Credits at the bottom
+                credits_text = "Developed by: Jack Mahoney, Ryan Potter, Ethan Rowland, Cooper Zion"
+                arcade.draw_text(credits_text, self.screen_width / 2, 30,
+                                 arcade.color.LIGHT_GRAY, 12, anchor_x="center", anchor_y="center")
+
+                # Render UI elements
                 self.manager.draw()
+
             case GameState.RULES:
-                # TODO: LOW PRIORITY: Add rules page
+                # Centering calculations for text
+                start_x = (self.screen_width / 2)
+                start_y = self.screen_height * 0.9
+                anchor_x = 'center'
+
+                # Draw game title with a shadow effect for depth
+                arcade.draw_text("STRATEGO", start_x + 2, start_y - 2,
+                                 arcade.color.BLACK, 50,
+                                 font_name="Kenney Mini Square", anchor_x=anchor_x)
+                arcade.draw_text("STRATEGO", start_x, start_y,
+                                 arcade.color.BARN_RED, 50, bold=True,
+                                 font_name="Kenney Mini Square", anchor_x=anchor_x)
+
+                # Draw decorative elements
+                # Place flags at top corners
+                # Unicode character for a flag
+                flag_symbol = "⚑"
+
+                # Top left corner
+                arcade.draw_text(flag_symbol, self.screen_width * 0.3, self.screen_height * 0.9, arcade.color.RED, 50,
+                                 anchor_x="center")
+                # Top right corner
+                arcade.draw_text(flag_symbol, self.screen_width * 0.7, self.screen_height * 0.9, arcade.color.BLUE, 50,
+                                 anchor_x="center")
+
+                # Columns setup
+                column1_start_x = self.screen_width * 0.35
+                column2_start_x = self.screen_width * 0.4
+                row_start_y = self.screen_height * 0.8
+                line_height = 30
+
+                # Define the pieces and their descriptions or actions
+                game_elements = {
+                    "Piece, Rank": "Description",
+                    "Marshal, 1": "Highest rank but defeated by the Spy",
+                    "General, 2": "Normal Piece",
+                    "Colonel, 3": "Normal Piece",
+                    "Major, 4": "Normal Piece",
+                    "Captain, 5": "Normal Piece",
+                    "Lieutenant, 6": "Normal Piece",
+                    "Sergent, 7": "Normal Piece",
+                    "Miner, 8": "Only piece that can defuse bombs",
+                    "Scout, 9": "Can move any number of spaces in a straight line",
+                    "Flag, F": "Can be captured but cannot move",
+                    "Spy, S": "Can defeat the Marshal or be defeated by any other",
+                    "Bomb, B": "Destroys any attacker except the Miner",
+                    "": "",
+                    "Keybind": "Description",
+                    "ESC": "Quit Game",
+                    "\\": "View the rules",
+                    "SPACE": "Continue to next page",
+                }
+
+                # Draw the columns
+                for key, value in game_elements.items():
+                    arcade.draw_text(key, column1_start_x, row_start_y, arcade.color.WHITE, 20, anchor_x="right")
+                    arcade.draw_text(value, column2_start_x, row_start_y, arcade.color.LIGHT_GRAY, 20, anchor_x="left")
+                    row_start_y -= line_height  # Move to the next line
+
                 pass
             case GameState.SETUP:
+                # Centering calculations for text
+                start_x = (self.screen_width / 2)
+                start_y = self.screen_height - DEFAULT_LINE_HEIGHT * 3
+                anchor_x = 'center'
+                arcade.draw_text("Setup Page", start_x + 2, start_y - 2,
+                                 arcade.color.BLACK, 50,
+                                 font_name="Kenney Mini Square", anchor_x=anchor_x)
                 # TODO: LOW PRIORITY: build setup sidebar?
                 pass
             case GameState.WAITING:
@@ -530,6 +632,9 @@ class MyGame(arcade.Window):
         pass
 
     def on_start_button_click(self, event):
+        self.game_state = GameState.RULES
+
+    def on_rules_button_click(self, event):
         self.game_state = GameState.SETUP
 
     def on_key_press(self, key, key_modifiers):
@@ -548,6 +653,10 @@ class MyGame(arcade.Window):
 
         match self.game_state:
             case GameState.INTRO:
+                # Space
+                if key == 32:
+                    self.game_state = GameState.RULES
+            case GameState.RULES:
                 # Space
                 if key == 32:
                     self.game_state = GameState.SETUP
