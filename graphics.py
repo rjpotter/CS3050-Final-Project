@@ -544,7 +544,8 @@ class MyGame(arcade.Window):
                     "Keybind": "Description",
                     "ESC": "Quit Game",
                     "\\": "View the rules",
-                    "SPACE": "Continue to next page",
+                    "SPACE": "Continue to setup",
+                    "ENTER": "Continue to playing",
                 }
 
                 # Draw the columns
@@ -660,10 +661,21 @@ class MyGame(arcade.Window):
                 # Space
                 if key == 32:
                     self.game_state = GameState.SETUP
+                # Enter
+                if key == 65293:
+                    self.game_state = GameState.PLAYING
             case GameState.SETUP:
                 # Enter
                 if key == 65293:
-                    self.game_state = GameState.WAITING
+                    self.game_state = GameState.PLAYING
+                # \
+                if key == 92:
+                    self.game_state = GameState.RULES
+            case GameState.PLAYING:
+                # \
+                if key == 92:
+                    self.game_state = GameState.RULES
+
 
     def on_mouse_press(self, x, y, button, key_modifiers):
         """
