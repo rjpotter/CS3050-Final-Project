@@ -563,6 +563,7 @@ class MyGame(arcade.Window):
                 arcade.draw_text("Setup Page", start_x + 2, start_y - 2,
                                  arcade.color.BLACK, 50,
                                  font_name="Kenney Mini Square", anchor_x=anchor_x)
+
                 # TODO: LOW PRIORITY: build setup sidebar?
                 pass
             case GameState.WAITING:
@@ -675,7 +676,6 @@ class MyGame(arcade.Window):
                 # \
                 if key == 92:
                     self.game_state = GameState.RULES
-
 
     def on_mouse_press(self, x, y, button, key_modifiers):
         """
