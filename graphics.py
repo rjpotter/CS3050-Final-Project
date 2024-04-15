@@ -612,14 +612,16 @@ class Engine(arcade.Window):
                         self.red_sprites.draw()
 
                 if self.did_attack:
-                    arcade.draw_text(f"Fought blue {self.attack_target}", self.screen_width / 3, self.screen_height / 2,
-                                     arcade.color.BLACK, 24,
-                                     font_name="Kenney Mini Square")
+                    # arcade.draw_text(f"Fought blue {self.attack_target}", self.screen_width / 3, self.screen_height / 2,
+                    #                  arcade.color.BLACK, 24,
+                    #                  font_name="Kenney Mini Square")
+                    pass
                 elif self.did_move:
-                    arcade.draw_text(f"Moved into space {self.move_target[1] + 1}, {10 - (self.move_target[0])}", self.screen_width / 3,
-                                     self.screen_height / 2,
-                                     arcade.color.BLACK, 24,
-                                     font_name="Kenney Mini Square")
+                    # arcade.draw_text(f"Moved into space {self.move_target[1] + 1}, {10 - (self.move_target[0])}", self.screen_width / 3,
+                    #                  self.screen_height / 2,
+                    #                  arcade.color.BLACK, 24,
+                    #                  font_name="Kenney Mini Square")
+                    pass
             case GameState.OVER:
                 # Set a themed background
                 arcade.set_background_color(arcade.color.DARK_GREEN)
@@ -748,16 +750,16 @@ class Engine(arcade.Window):
                     row_col_end = self.convert_screen_to_board(x, y)
                     old_board = self.Game.board.copy()
                     if Game.human_player_move(self.Game, row_col_start, row_col_end):
-                        target: Cell = old_board[row_col_end[0]][row_col_end[1]]
+                        target: Cell = old_board[row_col_end[1]][row_col_end[0]]
                         if target == Cell.empty:
                             # no attack
-                            self.did_move = False
-                            self.did_attack = True
-                            self.attack_target = target
-                        else:
-                            self.did_attack = False
                             self.did_move = True
+                            self.did_attack = False
                             self.move_target = row_col_end
+                        else:
+                            self.did_attack = True
+                            self.did_move = False
+                            self.attack_target = target
                         self.game_state = GameState.WAITING
                     else:
                         # invalid move
