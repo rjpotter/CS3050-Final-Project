@@ -627,8 +627,22 @@ class Engine(arcade.Window):
                         self.blue_sprites.draw()
                         self.red_sprites.draw()
             case GameState.OVER:
-                # TODO: Add over screen
-                pass
+                # Set a themed background
+                arcade.set_background_color(arcade.color.DARK_GREEN)
+
+                # Centering calculations for text
+                start_x = (self.screen_width / 2)
+                start_y = self.screen_height - DEFAULT_LINE_HEIGHT * 3
+                anchor_x = 'center'
+
+                # Draw game title with a shadow effect for depth
+                arcade.draw_text("GAME OVER", start_x + 2, start_y - 2,
+                                 arcade.color.BLACK, 100,
+                                 font_name="Kenney Mini Square", anchor_x=anchor_x)
+                arcade.draw_text("GAME OVER", start_x, start_y,
+                                 arcade.color.BARN_RED, 100, bold=True,
+                                 font_name="Kenney Mini Square", anchor_x=anchor_x)
+
 
     def on_update(self, delta_time):
         """
