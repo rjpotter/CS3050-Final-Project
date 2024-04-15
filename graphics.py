@@ -7,7 +7,7 @@ CS 3050 - Software Engineering
 import math
 import arcade
 import arcade.gui
-from classes import Game, Game_State
+from classes import Game, Game_State, Cell
 from enum import Enum
 
 SCREEN_WIDTH = 1920
@@ -116,6 +116,11 @@ class Engine(arcade.Window):
 
         self.size_board = width if width < height else height
         self.size_square = int(self.size_board / 10)
+
+        self.did_attack = False
+        self.did_move = False
+        self.attack_target = None
+        self.move_target = None
 
         self.game_state = GameState.INTRO
         self.Game = Game()
@@ -583,33 +588,6 @@ class Engine(arcade.Window):
 
                 # TODO: LOW PRIORITY: build setup sidebar?
                 pass
-            case GameState.WAITING:
-                # unneeded?
-                for ii in range(10):
-                    for jj in range(10):
-                        x = (ii * self.size_square + self.size_square // 2) + (
-                            (self.width / 2 - (5 * self.size_square)) if self.width > self.height else 0)
-                        y = ((jj * self.size_square) + self.size_square // 2) + (
-                            (self.height / 2 - (5 * self.size_square)) if self.height > self.width else 0)
-
-                        # if jj < 4:
-                        #     self.red_sprites[jj * 10 + ii].center_x = x
-                        #     self.red_sprites[jj * 10 + ii].center_y = y
-                        #     self.red_sprites[jj * 10 + ii].scale = 0.00014 * max(self.width, self.height)
-                        # if jj > 5:
-                        #     self.blue_sprites[(jj - 6) * 10 + ii].center_x = x
-                        #     self.blue_sprites[(jj - 6) * 10 + ii].center_y = y
-                        #     self.blue_sprites[(jj - 6) * 10 + ii].scale = 0.00014 * max(self.width, self.height)
-
-                        if (ii == 2 or ii == 3 or ii == 6 or ii == 7) and (jj == 4 or jj == 5):
-                            arcade.draw_rectangle_filled(x, y, self.size_square, self.size_square, LAKE_COLOR)
-                        else:
-                            arcade.draw_rectangle_filled(x, y, self.size_square, self.size_square, BOARD)
-                        arcade.draw_rectangle_outline(x, y, self.size_square, self.size_square, REG_OUTLINE, 2)
-
-                        self.blue_sprites.draw()
-                        self.red_sprites.draw()
-                pass
             case GameState.PLAYING:
                 for ii in range(10):
                     for jj in range(10):
@@ -626,6 +604,16 @@ class Engine(arcade.Window):
 
                         self.blue_sprites.draw()
                         self.red_sprites.draw()
+
+                if self.did_attack:
+                    arcade.draw_text(f"Fought blue {self.attack_target}", self.screen_width / 3, self.screen_height / 2,
+                                     arcade.color.BLACK, 24,
+                                     font_name="Kenney Mini Square")
+                elif self.did_move:
+                    arcade.draw_text(f"Moved into space {self.move_target[1] + 1}, {10 - (self.move_target[0])}", self.screen_width / 3,
+                                     self.screen_height / 2,
+                                     arcade.color.BLACK, 24,
+                                     font_name="Kenney Mini Square")
             case GameState.OVER:
                 # TODO: Add over screen
                 pass
@@ -738,9 +726,19 @@ class Engine(arcade.Window):
                 if self.held_piece is not None:
                     row_col_start = self.convert_screen_to_board(self.held_piece.center_x, self.held_piece.center_y)
                     row_col_end = self.convert_screen_to_board(x, y)
+                    old_board = self.Game.board.copy()
                     if Game.human_player_move(self.Game, row_col_start, row_col_end):
+                        target: Cell = old_board[row_col_end[0]][row_col_end[1]]
+                        if target == Cell.empty:
+                            # no attack
+                            self.did_move = False
+                            self.did_attack = True
+                            self.attack_target = target
+                        else:
+                            self.did_attack = False
+                            self.did_move = True
+                            self.move_target = row_col_end
                         self.game_state = GameState.WAITING
-                        pass
                     else:
                         # invalid move
                         # TODO: MAKE THIS WORK
