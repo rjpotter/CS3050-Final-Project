@@ -4,6 +4,12 @@ Stratego: Graphics
 CS 3050 - Software Engineering
 3/6/2024
 """
+
+"""
+NOTE: if running this on MacOS, run this command in the shell first:
+defaults write org.python.python ApplePersistenceIgnoreState NO
+"""
+
 import math
 import arcade
 import arcade.gui
