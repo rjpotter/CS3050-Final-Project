@@ -265,14 +265,15 @@ class Game:
     def is_human_piece(self, row: int, col: int) -> bool:
         return (row, col) in self.human_player.troop_locations
 
-    def computer_player_move(self) -> None:
+    def computer_player_move(self) -> Cell:
         """
         computer_player_move picks a random move able computer piece and makes a random valid move
         This method detects a situation where there are no possible computer moves (computer loses)
         This method detects the computer capturing the flag
         This method updates the board list of Cells, along with each list of tuples for each player storing that
         players' troop locations
-        :return: nothing
+        :return: Cell object. Cell.unknown if the comp didn't attack the player, otherwise if the comp attacked the
+        player, return the cell type it used to attack with
         """
 
         comp_troop_locations_copy = self.computer_player.troop_locations.copy()
@@ -346,7 +347,12 @@ class Game:
             else:  # only have bad moves somehow. Make one of those
                 selected_troop_location, selected_move = bad_moves.pop(randint(0, len(bad_moves) - 1))
 
-            # now use the old code to execute the move.
+            # if the human got attacked, remember that the human got attacked and save what attacked it to return
+            if selected_move in self.human_player.troop_locations:
+                to_return: Cell = self.board[selected_troop_location[0]][selected_troop_location[1]]
+            else:
+                to_return: Cell = Cell.unknown
+
             # Carry out the move. First step is to do the comparison between the troops.
             surviving_locations: list[tuple[int, int]] = compare_units(self.board, selected_troop_location,
                                                                        selected_move)
@@ -356,7 +362,7 @@ class Game:
             if surviving_locations and self.board[surviving_locations[0][0]][
                 surviving_locations[0][1]] == Cell.flag:
                 self.game_end("Computer", Game_State.capture_flag)
-                return  # Exit the method if the game has ended.
+                return to_return  # Exit the method if the game has ended.
 
             # if computer troop survives, do things
             if selected_troop_location in surviving_locations:
@@ -396,6 +402,8 @@ class Game:
             end_location = selected_move
             # Update the last move location
             self.last_computer_move = end_location
+
+            return to_return
 
     def is_moveable_cell(self, row: int, col: int) -> bool:
         """
