@@ -4,9 +4,10 @@ Stratego: Graphics
 CS 3050 - Software Engineering
 3/6/2024
 """
-
+import math
 import arcade
 import arcade.gui
+from classes import Game
 from enum import Enum
 
 SCREEN_WIDTH = 1920
@@ -48,7 +49,18 @@ class Piece:
         self.sprite_index = sprite_index
 
 
-class MyGame(arcade.Window):
+def convert_value_to_texture(value):
+    if value == -1:
+        return 5
+    elif value == 11:
+        return 11
+    elif value > 5:
+        return 10 - value
+    else:
+        return 11 - value
+
+
+class Engine(arcade.Window):
     """
     Graphics application class
     """
@@ -61,15 +73,19 @@ class MyGame(arcade.Window):
         # If we have sprite lists, we should create them here,
         # and set them to None
 
-        self.manager = arcade.gui.UIManager()
-        self.manager.enable()
-        self.v_box = arcade.gui.UIBoxLayout(space_between=20)
+        # self.manager = arcade.gui.UIManager()
+        # self.manager.enable()
+        # self.v_box = arcade.gui.UIBoxLayout(space_between=20)
 
         self.red_pieces = []
         self.blue_pieces = []
 
         self.red_sprites = arcade.SpriteList()
         self.blue_sprites = arcade.SpriteList()
+
+        self.red_piece_textures = []
+        self.blue_piece_textures = []
+        self.blue_piece_hidden_texture = None
 
         red_style = {
             "font_name": ("calibri", "arial"),
@@ -81,17 +97,17 @@ class MyGame(arcade.Window):
             "bg_color": arcade.color.BARN_RED,
         }
 
-        start_button = arcade.gui.UIFlatButton(text="Click Here or Press Space Start", width=400, height=100,
-                                               style=red_style)
-        start_button.on_click = self.on_start_button_click
-        self.v_box.add(start_button)
+        # start_button = arcade.gui.UIFlatButton(text="Click Here or Press Space Start", width=400, height=100,
+        #                                        style=red_style)
+        # start_button.on_click = self.on_start_button_click
+        # self.v_box.add(start_button)
 
-        self.manager.add(
-            arcade.gui.UIAnchorWidget(
-                anchor_x="center_x",
-                anchor_y="center_y",
-                child=self.v_box)
-        )
+        # self.manager.add(
+        #     arcade.gui.UIAnchorWidget(
+        #         anchor_x="center_x",
+        #         anchor_y="center_y",
+        #         child=self.v_box)
+        # )
 
         self.held_piece = None
 
@@ -102,6 +118,7 @@ class MyGame(arcade.Window):
         self.size_square = int(self.size_board / 10)
 
         self.game_state = GameState.INTRO
+        self.Game = Game()
 
     def on_resize(self, width, height):
         """ This method is automatically called when the window is resized. """
@@ -127,8 +144,8 @@ class MyGame(arcade.Window):
             for jj in range(6):
                 texture_map_cords.append([PIECE_WIDTH * jj, PIECE_HEIGHT * ii, PIECE_WIDTH, PIECE_HEIGHT])
 
-        # Create sprites and sprite lists here
-        red_piece_textures = arcade.load_textures(
+        # Create texture atlases
+        self.red_piece_textures = arcade.load_textures(
             "img/red_pieces.png",
             texture_map_cords,
             False,
@@ -137,7 +154,7 @@ class MyGame(arcade.Window):
             4.5
         )
 
-        blue_piece_textures = arcade.load_textures(
+        self.blue_piece_textures = arcade.load_textures(
             "img/blue_pieces.png",  # filename
             texture_map_cords,
             False,
@@ -146,304 +163,305 @@ class MyGame(arcade.Window):
             4.5
         )
 
-        # 80 total pieces, 40 for each player
-        # 1 Marshal
-        sprite = arcade.Sprite(texture=red_piece_textures[0], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(10, "red", 0))
+        # self.blue_piece_hidden_texture = arcade.load_texture("img/blue_piece.png", )
 
-        # 1 General
-        sprite = arcade.Sprite(texture=red_piece_textures[1], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(9, "red", 1))
+        # # 80 total pieces, 40 for each player
+        # # 1 Marshal
+        # sprite = arcade.Sprite(texture=red_piece_textures[0], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(10, "red", 0))
+        #
+        # # 1 General
+        # sprite = arcade.Sprite(texture=red_piece_textures[1], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(9, "red", 1))
+        #
+        # # 2 Colonels
+        # sprite = arcade.Sprite(texture=red_piece_textures[2], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(8, "red", 2))
+        # sprite = arcade.Sprite(texture=red_piece_textures[2], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(8, "red", 3))
+        #
+        # # 3 Majors
+        # sprite = arcade.Sprite(texture=red_piece_textures[3], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(7, "red", 4))
+        # sprite = arcade.Sprite(texture=red_piece_textures[3], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(7, "red", 5))
+        # sprite = arcade.Sprite(texture=red_piece_textures[3], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(7, "red", 6))
+        #
+        # # 4 Captains
+        # sprite = arcade.Sprite(texture=red_piece_textures[4], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(6, "red", 7))
+        # sprite = arcade.Sprite(texture=red_piece_textures[4], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(6, "red", 8))
+        # sprite = arcade.Sprite(texture=red_piece_textures[4], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(6, "red", 9))
+        # sprite = arcade.Sprite(texture=red_piece_textures[4], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(6, "red", 10))
+        #
+        # # 4 Lieutenants
+        # sprite = arcade.Sprite(texture=red_piece_textures[6], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(5, "red", 11))
+        # sprite = arcade.Sprite(texture=red_piece_textures[6], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(5, "red", 12))
+        # sprite = arcade.Sprite(texture=red_piece_textures[6], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(5, "red", 13))
+        # sprite = arcade.Sprite(texture=red_piece_textures[6], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(5, "red", 14))
+        #
+        # # 4 Sergeants
+        # sprite = arcade.Sprite(texture=red_piece_textures[7], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(4, "red", 15))
+        # sprite = arcade.Sprite(texture=red_piece_textures[7], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(4, "red", 16))
+        # sprite = arcade.Sprite(texture=red_piece_textures[7], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(4, "red", 17))
+        # sprite = arcade.Sprite(texture=red_piece_textures[7], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(4, "red", 18))
+        #
+        # # 5 Miners
+        # sprite = arcade.Sprite(texture=red_piece_textures[8], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(3, "red", 19))
+        # sprite = arcade.Sprite(texture=red_piece_textures[8], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(3, "red", 20))
+        # sprite = arcade.Sprite(texture=red_piece_textures[8], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(3, "red", 21))
+        # sprite = arcade.Sprite(texture=red_piece_textures[8], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(3, "red", 22))
+        # sprite = arcade.Sprite(texture=red_piece_textures[8], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(3, "red", 23))
+        #
+        # # 8 Scouts
+        # sprite = arcade.Sprite(texture=red_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(2, "red", 24))
+        # sprite = arcade.Sprite(texture=red_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(2, "red", 25))
+        # sprite = arcade.Sprite(texture=red_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(2, "red", 26))
+        # sprite = arcade.Sprite(texture=red_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(2, "red", 27))
+        # sprite = arcade.Sprite(texture=red_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(2, "red", 28))
+        # sprite = arcade.Sprite(texture=red_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(2, "red", 29))
+        # sprite = arcade.Sprite(texture=red_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(2, "red", 30))
+        # sprite = arcade.Sprite(texture=red_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(2, "red", 31))
+        #
+        # # 1 Spy
+        # sprite = arcade.Sprite(texture=red_piece_textures[10], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(1, "red", 32))
+        #
+        # # 1 Flag
+        # sprite = arcade.Sprite(texture=red_piece_textures[5], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(-1, "red", 33))
+        #
+        # # 6 Bombs
+        # sprite = arcade.Sprite(texture=red_piece_textures[11], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(11, "red", 34))
+        # sprite = arcade.Sprite(texture=red_piece_textures[11], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(11, "red", 35))
+        # sprite = arcade.Sprite(texture=red_piece_textures[11], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(11, "red", 36))
+        # sprite = arcade.Sprite(texture=red_piece_textures[11], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(11, "red", 37))
+        # sprite = arcade.Sprite(texture=red_piece_textures[11], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(11, "red", 38))
+        # sprite = arcade.Sprite(texture=red_piece_textures[11], center_x=self.width / 2, center_y=self.height / 2)
+        # self.red_sprites.append(sprite)
+        # self.red_pieces.append(Piece(11, "red", 39))
+        #
+        # # Blue pieces
+        # # 1 Marshal
+        # sprite = arcade.Sprite(texture=blue_piece_textures[0], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(10, "blue", 0))
+        #
+        # # 1 General
+        # sprite = arcade.Sprite(texture=blue_piece_textures[1], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(9, "blue", 1))
+        #
+        # # 2 Colonels
+        # sprite = arcade.Sprite(texture=blue_piece_textures[2], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(8, "blue", 2))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[2], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(8, "blue", 3))
+        #
+        # # 3 Majors
+        # sprite = arcade.Sprite(texture=blue_piece_textures[3], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(7, "blue", 4))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[3], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(7, "blue", 5))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[3], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(7, "blue", 6))
+        #
+        # # 4 Captains
+        # sprite = arcade.Sprite(texture=blue_piece_textures[4], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(6, "blue", 7))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[4], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(6, "blue", 8))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[4], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(6, "blue", 9))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[4], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(6, "blue", 10))
+        #
+        # # 4 Lieutenants
+        # sprite = arcade.Sprite(texture=blue_piece_textures[6], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(5, "blue", 11))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[6], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(5, "blue", 12))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[6], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(5, "blue", 13))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[6], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(5, "blue", 14))
+        #
+        # # 4 Sergeants
+        # sprite = arcade.Sprite(texture=blue_piece_textures[7], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(4, "blue", 15))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[7], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(4, "blue", 16))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[7], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(4, "blue", 17))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[7], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(4, "blue", 18))
+        #
+        # # 5 Miners
+        # sprite = arcade.Sprite(texture=blue_piece_textures[8], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(3, "blue", 19))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[8], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(3, "blue", 20))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[8], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(3, "blue", 21))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[8], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(3, "blue", 22))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[8], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(3, "blue", 23))
+        #
+        # # 8 Scouts
+        # sprite = arcade.Sprite(texture=blue_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(2, "blue", 24))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(2, "blue", 25))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(2, "blue", 26))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(2, "blue", 27))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(2, "blue", 28))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(2, "blue", 29))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(2, "blue", 30))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(2, "blue", 31))
+        #
+        # # 1 Spy
+        # sprite = arcade.Sprite(texture=blue_piece_textures[10], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(1, "blue", 32))
+        #
+        # # 1 Flag
+        # sprite = arcade.Sprite(texture=blue_piece_textures[5], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(-1, "blue", 33))
+        #
+        # # 6 Bombs
+        # sprite = arcade.Sprite(texture=blue_piece_textures[11], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(11, "blue", 34))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[11], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(11, "blue", 35))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[11], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(11, "blue", 36))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[11], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(11, "blue", 37))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[11], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(11, "blue", 38))
+        # sprite = arcade.Sprite(texture=blue_piece_textures[11], center_x=self.width / 2, center_y=self.height / 2)
+        # self.blue_sprites.append(sprite)
+        # self.blue_pieces.append(Piece(11, "blue", 39))
 
-        # 2 Colonels
-        sprite = arcade.Sprite(texture=red_piece_textures[2], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(8, "red", 2))
-        sprite = arcade.Sprite(texture=red_piece_textures[2], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(8, "red", 3))
-
-        # 3 Majors
-        sprite = arcade.Sprite(texture=red_piece_textures[3], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(7, "red", 4))
-        sprite = arcade.Sprite(texture=red_piece_textures[3], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(7, "red", 5))
-        sprite = arcade.Sprite(texture=red_piece_textures[3], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(7, "red", 6))
-
-        # 4 Captains
-        sprite = arcade.Sprite(texture=red_piece_textures[4], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(6, "red", 7))
-        sprite = arcade.Sprite(texture=red_piece_textures[4], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(6, "red", 8))
-        sprite = arcade.Sprite(texture=red_piece_textures[4], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(6, "red", 9))
-        sprite = arcade.Sprite(texture=red_piece_textures[4], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(6, "red", 10))
-
-        # 4 Lieutenants
-        sprite = arcade.Sprite(texture=red_piece_textures[6], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(5, "red", 11))
-        sprite = arcade.Sprite(texture=red_piece_textures[6], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(5, "red", 12))
-        sprite = arcade.Sprite(texture=red_piece_textures[6], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(5, "red", 13))
-        sprite = arcade.Sprite(texture=red_piece_textures[6], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(5, "red", 14))
-
-        # 4 Sergeants
-        sprite = arcade.Sprite(texture=red_piece_textures[7], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(4, "red", 15))
-        sprite = arcade.Sprite(texture=red_piece_textures[7], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(4, "red", 16))
-        sprite = arcade.Sprite(texture=red_piece_textures[7], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(4, "red", 17))
-        sprite = arcade.Sprite(texture=red_piece_textures[7], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(4, "red", 18))
-
-        # 5 Miners
-        sprite = arcade.Sprite(texture=red_piece_textures[8], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(3, "red", 19))
-        sprite = arcade.Sprite(texture=red_piece_textures[8], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(3, "red", 20))
-        sprite = arcade.Sprite(texture=red_piece_textures[8], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(3, "red", 21))
-        sprite = arcade.Sprite(texture=red_piece_textures[8], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(3, "red", 22))
-        sprite = arcade.Sprite(texture=red_piece_textures[8], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(3, "red", 23))
-
-        # 8 Scouts
-        sprite = arcade.Sprite(texture=red_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(2, "red", 24))
-        sprite = arcade.Sprite(texture=red_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(2, "red", 25))
-        sprite = arcade.Sprite(texture=red_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(2, "red", 26))
-        sprite = arcade.Sprite(texture=red_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(2, "red", 27))
-        sprite = arcade.Sprite(texture=red_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(2, "red", 28))
-        sprite = arcade.Sprite(texture=red_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(2, "red", 29))
-        sprite = arcade.Sprite(texture=red_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(2, "red", 30))
-        sprite = arcade.Sprite(texture=red_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(2, "red", 31))
-
-        # 1 Spy
-        sprite = arcade.Sprite(texture=red_piece_textures[10], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(1, "red", 32))
-
-        # 1 Flag
-        sprite = arcade.Sprite(texture=red_piece_textures[5], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(-1, "red", 33))
-
-        # 6 Bombs
-        sprite = arcade.Sprite(texture=red_piece_textures[11], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(11, "red", 34))
-        sprite = arcade.Sprite(texture=red_piece_textures[11], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(11, "red", 35))
-        sprite = arcade.Sprite(texture=red_piece_textures[11], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(11, "red", 36))
-        sprite = arcade.Sprite(texture=red_piece_textures[11], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(11, "red", 37))
-        sprite = arcade.Sprite(texture=red_piece_textures[11], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(11, "red", 38))
-        sprite = arcade.Sprite(texture=red_piece_textures[11], center_x=self.width / 2, center_y=self.height / 2)
-        self.red_sprites.append(sprite)
-        self.red_pieces.append(Piece(11, "red", 39))
-
-        # Blue pieces
-        # 1 Marshal
-        sprite = arcade.Sprite(texture=blue_piece_textures[0], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(10, "blue", 0))
-
-        # 1 General
-        sprite = arcade.Sprite(texture=blue_piece_textures[1], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(9, "blue", 1))
-
-        # 2 Colonels
-        sprite = arcade.Sprite(texture=blue_piece_textures[2], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(8, "blue", 2))
-        sprite = arcade.Sprite(texture=blue_piece_textures[2], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(8, "blue", 3))
-
-        # 3 Majors
-        sprite = arcade.Sprite(texture=blue_piece_textures[3], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(7, "blue", 4))
-        sprite = arcade.Sprite(texture=blue_piece_textures[3], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(7, "blue", 5))
-        sprite = arcade.Sprite(texture=blue_piece_textures[3], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(7, "blue", 6))
-
-        # 4 Captains
-        sprite = arcade.Sprite(texture=blue_piece_textures[4], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(6, "blue", 7))
-        sprite = arcade.Sprite(texture=blue_piece_textures[4], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(6, "blue", 8))
-        sprite = arcade.Sprite(texture=blue_piece_textures[4], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(6, "blue", 9))
-        sprite = arcade.Sprite(texture=blue_piece_textures[4], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(6, "blue", 10))
-
-        # 4 Lieutenants
-        sprite = arcade.Sprite(texture=blue_piece_textures[6], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(5, "blue", 11))
-        sprite = arcade.Sprite(texture=blue_piece_textures[6], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(5, "blue", 12))
-        sprite = arcade.Sprite(texture=blue_piece_textures[6], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(5, "blue", 13))
-        sprite = arcade.Sprite(texture=blue_piece_textures[6], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(5, "blue", 14))
-
-        # 4 Sergeants
-        sprite = arcade.Sprite(texture=blue_piece_textures[7], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(4, "blue", 15))
-        sprite = arcade.Sprite(texture=blue_piece_textures[7], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(4, "blue", 16))
-        sprite = arcade.Sprite(texture=blue_piece_textures[7], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(4, "blue", 17))
-        sprite = arcade.Sprite(texture=blue_piece_textures[7], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(4, "blue", 18))
-
-        # 5 Miners
-        sprite = arcade.Sprite(texture=blue_piece_textures[8], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(3, "blue", 19))
-        sprite = arcade.Sprite(texture=blue_piece_textures[8], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(3, "blue", 20))
-        sprite = arcade.Sprite(texture=blue_piece_textures[8], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(3, "blue", 21))
-        sprite = arcade.Sprite(texture=blue_piece_textures[8], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(3, "blue", 22))
-        sprite = arcade.Sprite(texture=blue_piece_textures[8], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(3, "blue", 23))
-
-        # 8 Scouts
-        sprite = arcade.Sprite(texture=blue_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(2, "blue", 24))
-        sprite = arcade.Sprite(texture=blue_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(2, "blue", 25))
-        sprite = arcade.Sprite(texture=blue_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(2, "blue", 26))
-        sprite = arcade.Sprite(texture=blue_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(2, "blue", 27))
-        sprite = arcade.Sprite(texture=blue_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(2, "blue", 28))
-        sprite = arcade.Sprite(texture=blue_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(2, "blue", 29))
-        sprite = arcade.Sprite(texture=blue_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(2, "blue", 30))
-        sprite = arcade.Sprite(texture=blue_piece_textures[9], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(2, "blue", 31))
-
-        # 1 Spy
-        sprite = arcade.Sprite(texture=blue_piece_textures[10], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(1, "blue", 32))
-
-        # 1 Flag
-        sprite = arcade.Sprite(texture=blue_piece_textures[5], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(-1, "blue", 33))
-
-        # 6 Bombs
-        sprite = arcade.Sprite(texture=blue_piece_textures[11], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(11, "blue", 34))
-        sprite = arcade.Sprite(texture=blue_piece_textures[11], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(11, "blue", 35))
-        sprite = arcade.Sprite(texture=blue_piece_textures[11], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(11, "blue", 36))
-        sprite = arcade.Sprite(texture=blue_piece_textures[11], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(11, "blue", 37))
-        sprite = arcade.Sprite(texture=blue_piece_textures[11], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(11, "blue", 38))
-        sprite = arcade.Sprite(texture=blue_piece_textures[11], center_x=self.width / 2, center_y=self.height / 2)
-        self.blue_sprites.append(sprite)
-        self.blue_pieces.append(Piece(11, "blue", 39))
-
-        for ii in range(10):
-            for jj in range(4):
-                self.red_sprites[jj * 10 + ii].center_x += (PIECE_WIDTH / 4) * ii
-                self.red_sprites[jj * 10 + ii].center_y += jj * PIECE_HEIGHT / 4
-                self.red_sprites[jj * 10 + ii].scale = 0.25
-                self.blue_sprites[jj * 10 + ii].center_x += (PIECE_WIDTH / 4) * ii - 600
-                self.blue_sprites[jj * 10 + ii].center_y += jj * PIECE_HEIGHT / 4
-                self.blue_sprites[jj * 10 + ii].scale = 0.25
+        # for ii in range(10):
+        #     for jj in range(4):
+        #         self.red_sprites[jj * 10 + ii].center_x += (PIECE_WIDTH / 4) * ii
+        #         self.red_sprites[jj * 10 + ii].center_y += jj * PIECE_HEIGHT / 4
+        #         self.red_sprites[jj * 10 + ii].scale = 0.25
+        #         self.blue_sprites[jj * 10 + ii].center_x += (PIECE_WIDTH / 4) * ii - 600
+        #         self.blue_sprites[jj * 10 + ii].center_y += jj * PIECE_HEIGHT / 4
 
     def on_draw(self):
         """
@@ -491,7 +509,7 @@ class MyGame(arcade.Window):
                                  arcade.color.LIGHT_GRAY, 12, anchor_x="center", anchor_y="center")
 
                 # Render UI elements
-                self.manager.draw()
+                # self.manager.draw()
 
             case GameState.RULES:
                 # Centering calculations for text
@@ -554,7 +572,6 @@ class MyGame(arcade.Window):
                     arcade.draw_text(value, column2_start_x, row_start_y, arcade.color.LIGHT_GRAY, 20, anchor_x="left")
                     row_start_y -= line_height  # Move to the next line
 
-                pass
             case GameState.SETUP:
                 # Centering calculations for text
                 start_x = (self.screen_width / 2)
@@ -575,14 +592,14 @@ class MyGame(arcade.Window):
                         y = ((jj * self.size_square) + self.size_square // 2) + (
                             (self.height / 2 - (5 * self.size_square)) if self.height > self.width else 0)
 
-                        if jj < 4:
-                            self.red_sprites[jj * 10 + ii].center_x = x
-                            self.red_sprites[jj * 10 + ii].center_y = y
-                            self.red_sprites[jj * 10 + ii].scale = 0.00014 * max(self.width, self.height)
-                        if jj > 5:
-                            self.blue_sprites[(jj - 6) * 10 + ii].center_x = x
-                            self.blue_sprites[(jj - 6) * 10 + ii].center_y = y
-                            self.blue_sprites[(jj - 6) * 10 + ii].scale = 0.00014 * max(self.width, self.height)
+                        # if jj < 4:
+                        #     self.red_sprites[jj * 10 + ii].center_x = x
+                        #     self.red_sprites[jj * 10 + ii].center_y = y
+                        #     self.red_sprites[jj * 10 + ii].scale = 0.00014 * max(self.width, self.height)
+                        # if jj > 5:
+                        #     self.blue_sprites[(jj - 6) * 10 + ii].center_x = x
+                        #     self.blue_sprites[(jj - 6) * 10 + ii].center_y = y
+                        #     self.blue_sprites[(jj - 6) * 10 + ii].scale = 0.00014 * max(self.width, self.height)
 
                         if (ii == 2 or ii == 3 or ii == 6 or ii == 7) and (jj == 4 or jj == 5):
                             arcade.draw_rectangle_filled(x, y, self.size_square, self.size_square, LAKE_COLOR)
@@ -600,15 +617,6 @@ class MyGame(arcade.Window):
                             (self.width / 2 - (5 * self.size_square)) if self.width > self.height else 0)
                         y = ((jj * self.size_square) + self.size_square // 2) + (
                             (self.height / 2 - (5 * self.size_square)) if self.height > self.width else 0)
-
-                        if jj < 4:
-                            self.red_sprites[jj * 10 + ii].center_x = x
-                            self.red_sprites[jj * 10 + ii].center_y = y
-                            self.red_sprites[jj * 10 + ii].scale = 0.00014 * max(self.width, self.height)
-                        if jj > 5:
-                            self.blue_sprites[(jj - 6) * 10 + ii].center_x = x
-                            self.blue_sprites[(jj - 6) * 10 + ii].center_y = y
-                            self.blue_sprites[(jj - 6) * 10 + ii].scale = 0.00014 * max(self.width, self.height)
 
                         if (ii == 2 or ii == 3 or ii == 6 or ii == 7) and (jj == 4 or jj == 5):
                             arcade.draw_rectangle_filled(x, y, self.size_square, self.size_square, LAKE_COLOR)
@@ -631,13 +639,44 @@ class MyGame(arcade.Window):
         # case waiting, get computer move from backend
         # case playing, proces registered user moves
 
-        pass
+        if self.game_state == GameState.WAITING:
+            self.Game.computer_player_move()
+            self.game_state = GameState.PLAYING
+
+        curr_col_center = self.screen_width / 2 - 4.5 * self.size_square
+        curr_row_center = self.screen_height / 2 + 4.5 * self.size_square
+
+        self.red_sprites.clear()
+        self.blue_sprites.clear()
+
+        for ii in range(10):
+            for jj in range(10):
+                type = self.Game.board[ii][jj].value
+                tex_index = convert_value_to_texture(type)
+                if (ii, jj) in self.Game.human_player.troop_locations:
+                    self.red_sprites.append(arcade.Sprite(texture=self.red_piece_textures[tex_index], center_x=curr_col_center, center_y=curr_row_center))
+                elif (ii, jj) in self.Game.computer_player.troop_locations:
+                    self.blue_sprites.append(arcade.Sprite(texture=self.blue_piece_hidden_texture, center_x=curr_col_center, center_y=curr_row_center))
+                curr_col_center += self.size_square
+            curr_col_center = self.screen_width / 2 - 4.5 * self.size_square
+            curr_row_center -= self.size_square
+
+        for ii in range(len(self.red_sprites)):
+            self.red_sprites[ii].scale = 0.00014 * max(self.width, self.height)
+        for ii in range(len(self.blue_sprites)):
+            self.blue_sprites[ii].scale = 0.00014 * max(self.width, self.height)
 
     def on_start_button_click(self, event):
-        self.game_state = GameState.RULES
+        if self.game_state == GameState.INTRO:
+            self.game_state = GameState.RULES
+            self.v_box.clear()
+            self.manager.clear()
 
     def on_rules_button_click(self, event):
-        self.game_state = GameState.SETUP
+        if self.game_state == GameState.RULES:
+            self.game_state = GameState.SETUP
+            self.v_box.clear()
+            self.manager.clear()
 
     def on_key_press(self, key, key_modifiers):
         """
@@ -681,26 +720,39 @@ class MyGame(arcade.Window):
         """
         Called when the user presses a mouse button.
         """
-        match self.GameState:
+        match self.game_state:
             case GameState.PLAYING:
-                piece = arcade.get_sprites_at_point((x, y), self.red_sprites)
-                if piece is not None:
-                    self.held_piece = piece
+                held_sprite = arcade.get_sprites_at_point((x, y), self.red_sprites)
+                if held_sprite is not None:
+                    self.held_piece = held_sprite[0]
 
     def on_mouse_release(self, x, y, button, key_modifiers):
         """
         Called when a user releases a mouse button.
         """
-        match self.GameState:
+        match self.game_state:
             case GameState.PLAYING:
                 if self.held_piece is not None:
-                    if arcade.get_sprites_at_point((x, y), self.blue_sprites) is not None:
-                        attack_target_sprite = arcade.get_sprites_at_point((x, y), self.blue_sprites)
-                    # elif arcade.get_sprites_at_point((x, y), self.red_sprites) is None and :
+                    row_col_start = self.convert_screen_to_board(self.held_piece.center_x, self.held_piece.center_y)
+                    row_col_end = self.convert_screen_to_board(x, y)
+                    if Game.human_player_move(self.Game, row_col_start, row_col_end):
+                        self.game_state = GameState.WAITING
+                        pass
+                    else:
+                        # invalid move
+                        # TODO: MAKE THIS WORK
+                        arcade.draw_text("INVALID MOVE", self.screen_width / 2, self.screen_height / 2,
+                                         arcade.color.BLACK, 50,
+                                         font_name="Kenney Mini Square")
+
+    def convert_screen_to_board(self, x, y):
+        new_x = math.floor((x - self.screen_width / 2 + (self.size_board / 2)) / self.size_square)
+        new_y = math.floor((-1 * y + self.screen_height / 2 + (self.size_board / 2)) / self.size_square)
+        return new_y, new_x
 
 
 def main():
-    game = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+    game = Engine(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
     game.setup()
     arcade.run()
 
