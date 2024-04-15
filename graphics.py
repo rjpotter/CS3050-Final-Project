@@ -7,7 +7,7 @@ CS 3050 - Software Engineering
 import math
 import arcade
 import arcade.gui
-from classes import Game
+from classes import Game, Game_State
 from enum import Enum
 
 SCREEN_WIDTH = 1920
@@ -163,7 +163,7 @@ class Engine(arcade.Window):
             4.5
         )
 
-        # self.blue_piece_hidden_texture = arcade.load_texture("img/blue_piece.png", )
+        self.blue_piece_hidden_texture = arcade.load_texture("img/blue_piece.png")
 
         # # 80 total pieces, 40 for each player
         # # 1 Marshal
@@ -635,6 +635,9 @@ class Engine(arcade.Window):
         All the logic for moving and the game logic goes here.
         Call update() on the sprite lists that need it.
         """
+
+        if self.Game.game_state != Game_State.not_finished:
+            self.game_state = GameState.OVER
 
         # case waiting, get computer move from backend
         # case playing, proces registered user moves
